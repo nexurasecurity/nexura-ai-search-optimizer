@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  php-lint:
+    name: PHP Syntax Check (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '7.4', '8.0', '8.1', '8.2' ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+
+      - name: Check PHP syntax errors (plugin files only)
+        run: |
+          find . -name "*.php" \
+            -not -path "./vendor/*" \
+            -not -path "./.github/*" \
+            -print0 | xargs -0 -n1 php -l
+
+      - name: All PHP files passed
+        run: echo "All PHP files passed syntax check on PHP ${{ matrix.php }}"

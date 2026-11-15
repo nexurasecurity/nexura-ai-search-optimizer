@@ -1,0 +1,45 @@
+# OS Metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+
+# Composer
+/vendor/autoload.php
+composer.lock
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Build & Release Artifacts
+/dist/
+*.zip
+*.tar.gz
+
+# WordPress Local Test Files
+wp-config.php
+wp-content/uploads/
+*.log
+
+# PHPUnit & Testing
+phpunit.xml
+.phpunit.result.cache
+/coverage/
+
+# PHP CodeSniffer / Fixer
+.php-cs-fixer.cache
+.phpcs.xml
+
+# Environment & Secret Files
+.env
+.env.*

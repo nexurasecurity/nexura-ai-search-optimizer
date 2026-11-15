@@ -1,0 +1,1342 @@
+/**
+ * Nexura AI Search Optimizer - Admin Stylesheet
+ * Native WordPress UI Enhancements
+ */
+
+/* Admin Header */
+.naso-card{
+	min-width: 100%;
+    max-width: 100%;
+}
+.naso-admin-wrap {
+	margin-top: 20px;
+	max-width: 1200px;
+}
+
+.naso-admin-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 15px;
+	margin-bottom: 20px;
+	padding-bottom: 15px;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.naso-header-title {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.naso-brand-icon {
+	font-size: 36px;
+	width: 36px;
+	height: 36px;
+	color: #2271b1;
+}
+
+.naso-header-title h1 {
+	margin: 0;
+	font-size: 24px;
+	font-weight: 600;
+	line-height: 1.2;
+}
+
+.naso-subtitle {
+	margin: 4px 0 0 0;
+	color: #646970;
+	font-size: 13px;
+}
+
+.naso-header-actions {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
+.naso-pro-btn {
+	background: #2271b1 !important;
+	border-color: #2271b1 !important;
+	font-weight: 600 !important;
+}
+
+/* Nav Tabs */
+.naso-nav-tabs {
+	margin-bottom: 20px;
+}
+
+.naso-nav-tabs .nav-tab {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.naso-nav-tabs .dashicons {
+	font-size: 17px;
+	width: 17px;
+	height: 17px;
+}
+
+/* Dashboard Layout */
+.naso-dashboard-grid {
+	display: grid;
+	grid-template-columns: 1fr 340px;
+	gap: 20px;
+}
+
+@media (max-width: 960px) {
+	.naso-dashboard-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* Card Decks */
+.naso-card-deck {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+	gap: 15px;
+	margin-bottom: 20px;
+}
+
+.naso-stat-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 18px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.naso-stat-card .naso-card-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 10px;
+}
+
+.naso-stat-card .dashicons {
+	font-size: 26px;
+	width: 26px;
+	height: 26px;
+	color: #2271b1;
+}
+
+.naso-stat-card h3 {
+	margin: 0 0 6px 0;
+	font-size: 16px;
+	color: #1d2327;
+}
+
+.naso-card-desc {
+	margin: 0 0 14px 0;
+	font-size: 13px;
+	color: #646970;
+	line-height: 1.4;
+	flex-grow: 1;
+}
+
+.naso-endpoint-actions {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+/* Badges */
+.naso-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+}
+
+.naso-badge-success {
+	background: #edfaef;
+	color: #1a7e37;
+	border: 1px solid #bfeac5;
+}
+
+.naso-badge-warning {
+	background: #fff8e5;
+	color: #9a6700;
+	border: 1px solid #fae392;
+}
+
+.naso-badge-danger {
+	background: #ffebe9;
+	color: #cf222e;
+	border: 1px solid #ffc1ba;
+}
+
+/* Compatibility box */
+.naso-compatibility-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background: #edfaef;
+	color: #1a7e37;
+	border: 1px solid #bfeac5;
+	padding: 6px 12px;
+	border-radius: 4px;
+	font-weight: 600;
+	font-size: 12px;
+}
+
+/* Feature list */
+.naso-feature-list {
+	list-style: none;
+	padding: 0;
+	margin: 12px 0 16px 0;
+}
+
+.naso-feature-list li {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 8px;
+	font-size: 13px;
+}
+
+.naso-feature-list .dashicons-yes {
+	color: #00a32a;
+}
+
+.naso-pro-highlight-card {
+	background: #f0f6fc !important;
+	border-color: #c8d8f0 !important;
+}
+
+/* Quick Audit & Main Audit */
+.naso-audit-inline-form,
+.naso-audit-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-top: 15px;
+}
+
+.naso-audit-toolbar select,
+.naso-audit-inline-form select,
+.naso-select-post {
+	min-height: 38px !important;
+	height: 38px !important;
+	padding: 0 12px !important;
+	border: 1px solid #c3c4c7 !important;
+	border-radius: 6px !important;
+	font-size: 14px !important;
+	background-color: #ffffff !important;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+	line-height: 36px !important;
+	box-sizing: border-box !important;
+	color: #2c3338 !important;
+}
+
+.naso-audit-toolbar select:focus,
+.naso-audit-inline-form select:focus,
+.naso-select-post:focus {
+	border-color: #2271b1 !important;
+	box-shadow: 0 0 0 1px #2271b1 !important;
+	outline: 2px solid transparent !important;
+}
+
+/* Score display */
+.naso-result-header {
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	flex-wrap: wrap;
+	background: #ffffff;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	padding: 22px 25px;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.naso-score-box {
+	text-align: center;
+	min-width: 120px;
+}
+
+.naso-score-number {
+	font-size: 48px;
+	font-weight: 700;
+	line-height: 1;
+	color: #2271b1;
+}
+
+.naso-score-label {
+	font-size: 12px;
+	color: #646970;
+	margin-top: 4px;
+}
+
+.naso-score-details h3 {
+	margin: 0 0 6px 0;
+	font-size: 18px;
+}
+
+/* Breakdown Grid */
+.naso-breakdown-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+	gap: 15px;
+	margin-top: 12px;
+}
+
+.naso-breakdown-card {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 14px;
+}
+
+.naso-breakdown-card-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 6px;
+}
+
+.naso-breakdown-title {
+	font-weight: 600;
+	font-size: 13px;
+}
+
+.naso-breakdown-score {
+	font-weight: 700;
+	color: #2271b1;
+}
+
+.naso-breakdown-status {
+	font-size: 12px;
+	color: #50575e;
+	margin: 0;
+}
+
+/* Recommendations list */
+.naso-recommendations-list {
+	margin: 12px 0 0 0;
+	padding-left: 20px;
+}
+
+.naso-recommendations-list li {
+	margin-bottom: 8px;
+	font-size: 13px;
+	color: #1d2327;
+}
+
+/* 5-Step Onboarding Wizard */
+.naso-wizard-wrap {
+	max-width: 760px;
+	margin: 30px auto 60px auto;
+	padding: 0 15px;
+}
+
+.naso-wizard-header {
+	text-align: center;
+	margin-bottom: 25px;
+}
+
+.naso-wizard-icon {
+	font-size: 48px;
+	width: 48px;
+	height: 48px;
+	color: #2271b1;
+	margin-bottom: 10px;
+}
+
+.naso-wizard-header h1 {
+	font-size: 26px;
+	margin: 0 0 8px 0;
+}
+
+.naso-wizard-header p {
+	font-size: 15px;
+	color: #646970;
+	margin: 0;
+}
+
+.naso-wizard-steps {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 25px;
+}
+
+.naso-step-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+}
+
+.naso-step-number {
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	background: #e0e0e0;
+	color: #646970;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 600;
+	font-size: 14px;
+}
+
+.naso-step-item.is-active .naso-step-number {
+	background: #2271b1;
+	color: #fff;
+}
+
+.naso-step-item.is-complete .naso-step-number {
+	background: #00a32a;
+	color: #fff;
+}
+
+.naso-step-label {
+	font-size: 12px;
+	color: #646970;
+	font-weight: 500;
+}
+
+.naso-step-line {
+	flex-grow: 1;
+	height: 3px;
+	background: #e0e0e0;
+	margin: 0 8px 20px 8px;
+}
+
+.naso-step-line.is-active {
+	background: #2271b1;
+}
+
+.naso-wizard-card {
+	padding: 30px !important;
+	border-radius: 8px !important;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+	margin-bottom: 40px !important;
+	background: #ffffff;
+	border: 1px solid #c3c4c7;
+	min-width: 100%;
+    max-width:  100%;
+}
+
+/* Ensure Dashicons are crisp and render reliably across all admin screens */
+.dashicons,
+.dashicons-before:before {
+	font-family: dashicons !important;
+	display: inline-block;
+	vertical-align: middle;
+	line-height: 1;
+	font-weight: 400;
+	font-style: normal;
+	speak: never;
+	text-decoration: inherit;
+	text-transform: none;
+	text-rendering: auto;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Elevated Buttons for Nexura & Wizard */
+.naso-btn-primary {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	background: #2271b1 !important;
+	border: 1px solid #2271b1 !important;
+	color: #ffffff !important;
+	font-size: 14px;
+	font-weight: 600;
+	min-height: 38px;
+	padding: 8px 20px;
+	border-radius: 6px;
+	text-decoration: none;
+	cursor: pointer;
+	line-height: 1.4;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+	transition: all 0.15s ease-in-out;
+	box-sizing: border-box;
+}
+
+.naso-btn-primary:hover,
+.naso-btn-primary:focus {
+	background: #135e96 !important;
+	border-color: #135e96 !important;
+	color: #ffffff !important;
+	box-shadow: 0 3px 8px rgba(19, 94, 150, 0.28);
+	transform: translateY(-1px);
+}
+
+.naso-btn-primary:active {
+	background: #0f4c7a !important;
+	border-color: #0f4c7a !important;
+	transform: translateY(0);
+}
+
+.naso-btn-success {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 8px !important;
+	background: #008a20 !important;
+	border: 1px solid #008a20 !important;
+	color: #ffffff !important;
+	font-size: 14px !important;
+	font-weight: 600 !important;
+	min-height: 38px !important;
+	height: 38px !important;
+	padding: 8px 20px !important;
+	border-radius: 6px !important;
+	text-decoration: none !important;
+	cursor: pointer !important;
+	line-height: 1.4 !important;
+	box-shadow: 0 1px 3px rgba(0, 138, 32, 0.25) !important;
+	transition: all 0.15s ease-in-out !important;
+	box-sizing: border-box !important;
+	white-space: nowrap !important;
+	vertical-align: middle !important;
+}
+
+.naso-btn-success:hover,
+.naso-btn-success:focus {
+	background: #00701a !important;
+	border-color: #00701a !important;
+	color: #ffffff !important;
+	box-shadow: 0 3px 8px rgba(0, 112, 26, 0.35) !important;
+	transform: translateY(-1px) !important;
+}
+
+.naso-btn-success:active {
+	background: #005a14 !important;
+	border-color: #005a14 !important;
+	transform: translateY(0) !important;
+}
+
+.naso-btn-secondary {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	background: #ffffff !important;
+	border: 1px solid #c3c4c7 !important;
+	color: #2c3338 !important;
+	font-size: 14px;
+	font-weight: 500;
+	min-height: 38px;
+	padding: 8px 18px;
+	border-radius: 6px;
+	text-decoration: none;
+	cursor: pointer;
+	line-height: 1.4;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+	transition: all 0.15s ease-in-out;
+	box-sizing: border-box;
+}
+
+.naso-btn-secondary:hover,
+.naso-btn-secondary:focus {
+	background: #f6f7f7 !important;
+	border-color: #8c8f94 !important;
+	color: #1d2327 !important;
+	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+	transform: translateY(-1px);
+}
+
+.naso-btn-secondary:active {
+	background: #edeeee !important;
+	transform: translateY(0);
+}
+
+.naso-btn-hero {
+	min-height: 48px !important;
+	padding: 12px 28px !important;
+	font-size: 16px !important;
+	font-weight: 600 !important;
+	border-radius: 8px !important;
+	box-shadow: 0 4px 14px rgba(34, 113, 177, 0.3) !important;
+}
+
+.naso-btn-hero:hover {
+	box-shadow: 0 6px 18px rgba(34, 113, 177, 0.4) !important;
+	transform: translateY(-2px);
+}
+
+.naso-wizard-nav-btns {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-top: 30px;
+	padding-top: 20px;
+	border-top: 1px solid #e2e4e7;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+.naso-wizard-skip-link {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	color: #646970;
+	font-size: 13px;
+	text-decoration: none;
+	padding: 6px 12px;
+	border-radius: 4px;
+	transition: all 0.15s ease-in-out;
+}
+
+.naso-wizard-skip-link:hover {
+	color: #2271b1;
+	background: #f0f6fc;
+	text-decoration: none;
+}
+
+.naso-wizard-skip-link .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	color: #646970;
+	transition: color 0.15s ease-in-out;
+}
+
+.naso-wizard-skip-link:hover .dashicons {
+	color: #2271b1;
+}
+
+.naso-audit-inline-card {
+	margin: 25px 0 15px 0;
+	padding: 18px;
+	background: #f8f9fa;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+}
+
+.naso-audit-inline-card h4 {
+	margin: 0 0 6px 0;
+	font-size: 15px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+/* Universal Button & Dashicon Alignment Fix for All Admin Screens */
+.naso-admin-wrap button,
+.naso-admin-wrap .button,
+.naso-wizard-wrap button,
+.naso-wizard-wrap .button,
+.naso-btn-primary,
+.naso-btn-secondary,
+.naso-btn-hero {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 8px !important;
+	white-space: nowrap !important;
+	vertical-align: middle !important;
+	text-decoration: none !important;
+	box-sizing: border-box !important;
+}
+
+.naso-hidden,
+.naso-is-hidden,
+.naso-btn-primary.naso-is-hidden,
+.naso-btn-secondary.naso-is-hidden,
+.naso-admin-wrap button[style*="display: none"],
+.naso-admin-wrap .button[style*="display: none"],
+.naso-btn-primary[style*="display: none"],
+.naso-btn-secondary[style*="display: none"] {
+	display: none !important;
+}
+
+.naso-admin-wrap button .dashicons,
+.naso-admin-wrap .button .dashicons,
+.naso-wizard-wrap button .dashicons,
+.naso-wizard-wrap .button .dashicons,
+.naso-btn-primary .dashicons,
+.naso-btn-secondary .dashicons,
+.naso-btn-hero .dashicons {
+	display: inline-flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	font-size: 18px !important;
+	width: 18px !important;
+	height: 18px !important;
+	line-height: 1 !important;
+	vertical-align: middle !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	position: static !important;
+	float: none !important;
+	flex-shrink: 0 !important;
+}
+
+/* WP List Table Columns Styling (Posts, Pages & WooCommerce Products) */
+th#naso_geo_score,
+th.column-naso_geo_score {
+	width: 140px !important;
+}
+
+.naso-table-cell {
+	min-width: 120px;
+}
+
+.naso-table-cell .naso-badge {
+	font-size: 11px;
+	padding: 3px 8px;
+	font-weight: 600;
+	border-radius: 4px;
+	display: inline-block;
+}
+
+.naso-table-cell .row-actions {
+	visibility: visible !important;
+	opacity: 1 !important;
+}
+
+/* Edit Screen Meta Box Styling */
+.naso-metabox-container {
+	padding: 5px 0;
+}
+
+.naso-mb-score-box {
+	background: #ffffff;
+	border: 2px solid #e2e4e7;
+	border-radius: 8px;
+	padding: 8px 12px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* 1-Click AI Fix Prompt Modal */
+.naso-modal-backdrop {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background: rgba(0, 0, 0, 0.65);
+	z-index: 999990;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+	box-sizing: border-box;
+}
+
+.naso-modal {
+	background: #ffffff;
+	border-radius: 10px;
+	max-width: 780px;
+	width: 100%;
+	max-height: 90vh;
+	display: flex;
+	flex-direction: column;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+	overflow: hidden;
+	animation: nasoModalFadeIn 0.2s ease-out;
+}
+
+@keyframes nasoModalFadeIn {
+	from { opacity: 0; transform: scale(0.97) translateY(10px); }
+	to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.naso-modal-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 16px 24px;
+	border-bottom: 1px solid #dcdcde;
+	background: #f8f9fa;
+}
+
+.naso-modal-header h3 {
+	margin: 0;
+	font-size: 17px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: #1d2327;
+}
+
+.naso-modal-close {
+	background: none !important;
+	border: none !important;
+	font-size: 24px !important;
+	line-height: 1 !important;
+	color: #646970 !important;
+	cursor: pointer !important;
+	padding: 0 !important;
+	box-shadow: none !important;
+}
+
+.naso-modal-close:hover {
+	color: #d63638 !important;
+}
+
+.naso-modal-body {
+	padding: 20px 24px;
+	overflow-y: auto;
+	flex: 1;
+}
+
+.naso-prompt-textarea {
+	width: 100%;
+	height: 280px;
+	font-family: Consolas, Monaco, "Andale Mono", monospace;
+	font-size: 13px;
+	line-height: 1.5;
+	padding: 14px;
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+	background: #fdfdfd;
+	color: #1d2327;
+	box-sizing: border-box;
+	resize: vertical;
+}
+
+.naso-modal-footer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 14px 24px;
+	border-top: 1px solid #dcdcde;
+	background: #f8f9fa;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+
+.naso-copy-toast {
+	color: #00a32a;
+	font-weight: 600;
+	display: none;
+	align-items: center;
+	gap: 4px;
+	font-size: 13px;
+}
+
+/* Auto Scan Notice & Table Nav Bar */
+.naso-auto-scan-notice {
+	border-left: 4px solid #2271b1 !important;
+	background: #ffffff !important;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05) !important;
+	border-radius: 4px;
+}
+
+.naso-tablenav-scan-box {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin-right: 8px;
+}
+
+.naso-btn-scan-all-table:hover {
+	background: #f0f6fc !important;
+}
+
+.naso-table-cell-highlight {
+	animation: nasoPulseGreen 1.5s ease-out;
+}
+
+@keyframes nasoPulseGreen {
+	0% {
+		background-color: #d1fae5;
+	}
+	100% {
+		background-color: transparent;
+	}
+}
+
+/* AI Agent Settings UI Redesign */
+.naso-ai-grid {
+	display: grid;
+	grid-template-columns: 1fr 360px;
+	gap: 24px;
+	margin-top: 20px;
+	align-items: start;
+}
+
+@media (max-width: 1080px) {
+	.naso-ai-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+.naso-ai-main-card {
+	background: #ffffff;
+	border: 1px solid #dcdcde;
+	border-radius: 12px;
+	padding: 28px;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.naso-ai-section-title {
+	margin: 0 0 8px 0;
+	font-size: 19px;
+	font-weight: 600;
+	color: #1d2327;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.naso-ai-section-title .dashicons {
+	color: #2271b1;
+	font-size: 22px;
+	width: 22px;
+	height: 22px;
+}
+
+.naso-ai-section-desc {
+	margin: 0 0 24px 0;
+	color: #646970;
+	font-size: 13.5px;
+	line-height: 1.5;
+}
+
+/* Provider Cards Selector */
+.naso-provider-cards {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 14px;
+	margin-bottom: 24px;
+}
+
+@media (max-width: 720px) {
+	.naso-provider-cards {
+		grid-template-columns: 1fr;
+	}
+}
+
+.naso-provider-card {
+	border: 2px solid #e2e4e7;
+	border-radius: 10px;
+	padding: 16px;
+	cursor: pointer;
+	background: #ffffff;
+	transition: all 0.2s ease-in-out;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+.naso-provider-card:hover {
+	border-color: #72aee6;
+	background: #f8fbfd;
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(34, 113, 177, 0.08);
+}
+
+.naso-provider-card.is-selected {
+	border-color: #2271b1;
+	background: #f0f6fc;
+	box-shadow: 0 0 0 1px #2271b1, 0 4px 12px rgba(34, 113, 177, 0.12);
+}
+
+.naso-provider-card-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 6px;
+}
+
+.naso-provider-card-name {
+	font-size: 15px;
+	font-weight: 700;
+	color: #1d2327;
+}
+
+.naso-provider-card-badge {
+	font-size: 10px;
+	font-weight: 700;
+	padding: 2px 7px;
+	border-radius: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+	background: #e5e7eb;
+	color: #4b5563;
+}
+
+.naso-provider-card.is-selected .naso-provider-card-badge {
+	background: #2271b1;
+	color: #ffffff;
+}
+
+.naso-provider-card-models {
+	font-size: 12px;
+	color: #646970;
+	line-height: 1.4;
+}
+
+.naso-provider-card-check {
+	position: absolute;
+	top: -8px;
+	right: -8px;
+	width: 22px;
+	height: 22px;
+	border-radius: 50%;
+	background: #2271b1;
+	color: #ffffff;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	font-size: 13px;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.naso-provider-card.is-selected .naso-provider-card-check {
+	display: flex;
+}
+
+/* Form Groups */
+.naso-form-group {
+	margin-bottom: 22px;
+}
+
+.naso-form-label {
+	display: block;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+	margin-bottom: 7px;
+}
+
+.naso-input-wrap {
+	position: relative;
+	display: flex;
+	align-items: center;
+	width: 100%;
+}
+
+.naso-input-icon {
+	position: absolute;
+	left: 12px;
+	color: #8c8f94;
+	font-size: 18px;
+	pointer-events: none;
+}
+
+.naso-input-text {
+	width: 100%;
+	height: 42px;
+	padding: 0 45px 0 38px;
+	font-size: 14px;
+	border: 1px solid #c3c4c7;
+	border-radius: 8px;
+	background: #ffffff;
+	font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	transition: all 0.2s ease;
+	box-sizing: border-box;
+}
+
+.naso-input-text:focus {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+	outline: none;
+}
+
+.naso-input-eye-btn {
+	position: absolute;
+	right: 8px;
+	background: none;
+	border: none;
+	color: #646970;
+	cursor: pointer;
+	padding: 6px 8px;
+	border-radius: 4px;
+	transition: color 0.15s ease;
+}
+
+.naso-input-eye-btn:hover {
+	color: #1d2327;
+	background: #f0f0f1;
+}
+
+.naso-select-styled {
+	width: 100%;
+	height: 42px;
+	padding: 0 14px;
+	font-size: 14px;
+	border: 1px solid #c3c4c7;
+	border-radius: 8px;
+	background: #ffffff;
+	transition: all 0.2s ease;
+	box-sizing: border-box;
+	cursor: pointer;
+}
+
+.naso-select-styled:focus {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+	outline: none;
+}
+
+.naso-field-hint {
+	margin-top: 7px;
+	font-size: 12.5px;
+	color: #646970;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.naso-field-hint a {
+	color: #2271b1;
+	text-decoration: none;
+	font-weight: 500;
+}
+
+.naso-field-hint a:hover {
+	text-decoration: underline;
+}
+
+/* Switch / Toggle Card */
+.naso-switch-card {
+	background: #f9fafb;
+	border: 1px solid #e5e7eb;
+	border-radius: 10px;
+	padding: 16px 18px;
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.naso-switch-card:hover {
+	background: #f3f4f6;
+	border-color: #d1d5db;
+}
+
+.naso-switch-checkbox {
+	width: 20px;
+	height: 20px;
+	margin: 0 !important;
+	cursor: pointer;
+}
+
+.naso-switch-info h4 {
+	margin: 0 0 3px 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.naso-switch-info p {
+	margin: 0;
+	font-size: 12.5px;
+	color: #646970;
+	line-height: 1.4;
+}
+
+/* Footer Actions */
+.naso-form-actions-bar {
+	margin-top: 28px;
+	padding-top: 20px;
+	border-top: 1px solid #f0f0f1;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 14px;
+}
+
+.naso-btn-save {
+	background: #2271b1;
+	color: #ffffff;
+	border: 1px solid #2271b1;
+	border-radius: 8px;
+	height: 40px;
+	padding: 0 24px;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	transition: all 0.15s ease;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.naso-btn-save:hover {
+	background: #135e96;
+	border-color: #135e96;
+	color: #ffffff;
+	box-shadow: 0 2px 6px rgba(19, 94, 150, 0.25);
+}
+
+.naso-btn-test {
+	background: #ffffff;
+	color: #2c3338;
+	border: 1px solid #c3c4c7;
+	border-radius: 8px;
+	height: 40px;
+	padding: 0 18px;
+	font-size: 13.5px;
+	font-weight: 500;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	transition: all 0.15s ease;
+}
+
+.naso-btn-test:hover {
+	background: #f6f7f7;
+	border-color: #8c8f94;
+	color: #1d2327;
+}
+
+/* Sidebar Step Timeline */
+.naso-step-card {
+	background: #ffffff;
+	border: 1px solid #dcdcde;
+	border-radius: 12px;
+	padding: 24px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+	margin-bottom: 20px;
+}
+
+.naso-step-title {
+	margin: 0 0 16px 0;
+	font-size: 16px;
+	font-weight: 700;
+	color: #1d2327;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.naso-timeline-item {
+	display: flex;
+	gap: 14px;
+	margin-bottom: 16px;
+	position: relative;
+}
+
+.naso-timeline-item:last-child {
+	margin-bottom: 0;
+}
+
+.naso-timeline-num {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	background: #f0f6fc;
+	border: 2px solid #2271b1;
+	color: #2271b1;
+	font-weight: 700;
+	font-size: 13px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.naso-timeline-content h5 {
+	margin: 0 0 4px 0;
+	font-size: 13.5px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.naso-timeline-content p {
+	margin: 0;
+	font-size: 12px;
+	color: #646970;
+	line-height: 1.45;
+}
+
+/* Security Card */
+.naso-security-card {
+	background: linear-gradient(145deg, #f0fdf4 0%, #ecfdf5 100%);
+	border: 1px solid #a7f3d0;
+	border-radius: 12px;
+	padding: 22px;
+	box-shadow: 0 2px 8px rgba(16, 185, 129, 0.05);
+}
+
+.naso-security-card h4 {
+	margin: 0 0 10px 0;
+	font-size: 15px;
+	font-weight: 700;
+	color: #065f46;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.naso-security-card ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.naso-security-card li {
+	margin-bottom: 8px;
+	font-size: 12.5px;
+	color: #047857;
+	line-height: 1.4;
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+}
+
+.naso-security-card li:last-child {
+	margin-bottom: 0;
+}
+
+/* Post Picker & Autocomplete */
+.naso-autocomplete-dropdown li {
+	padding: 8px 12px;
+	margin: 0;
+	cursor: pointer;
+	font-size: 13px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	border-bottom: 1px solid #f0f0f1;
+	transition: background 0.15s ease;
+}
+
+.naso-autocomplete-dropdown li:last-child {
+	border-bottom: none;
+}
+
+.naso-autocomplete-dropdown li:hover:not(.already-selected),
+.naso-autocomplete-dropdown li.active {
+	background: #f0f6fc;
+	color: #2271b1;
+}
+
+.naso-tag-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background: #f0f0f1;
+	border: 1px solid #c3c4c7;
+	padding: 4px 8px;
+	border-radius: 4px;
+	font-size: 12px;
+	color: #1d2327;
+	transition: all 0.15s ease;
+}
+
+.naso-tag-pill:hover {
+	background: #e2e4e7;
+	border-color: #8c8f94;
+}
+
+.naso-tag-remove:hover {
+	color: #d63638 !important;
+}
+
+
