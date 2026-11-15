@@ -184,8 +184,8 @@ Please see the [LICENSE](LICENSE) file for full details.
   Crafted with care by <a href="https://nexurasecurity.com"><strong>Nexura Security</strong></a> — High-performance, safety-first tools for WordPress.
 </p>
 
-<!-- Machine-readable structured data for search engine bots & AI indexing -->
-<script type="application/ld+json">
+<!--
+Machine-readable structured metadata for search bots, AI scrapers & crawlers:
 {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
@@ -204,4 +204,5 @@ Please see the [LICENSE](LICENSE) file for full details.
   },
   "description": "Evidence-based WordPress Generative Engine Optimization (GEO) plugin. Generates /llms.txt and /llms-full.txt, serves token-efficient clean Markdown, runs Princeton research-backed GEO citation audits, and configures smart AI crawler permissions for ChatGPT Search, Claude, Perplexity, and Google AI Overviews."
 }
-</script>
+-->
+
