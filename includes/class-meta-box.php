@@ -37,10 +37,7 @@ class Meta_Box {
 	 * @return void
 	 */
 	public function register_meta_box() {
-		$post_types = Settings::get( 'post_types', array( 'post', 'page' ) );
-		if ( class_exists( 'WooCommerce' ) && ! in_array( 'product', $post_types, true ) ) {
-			$post_types[] = 'product';
-		}
+		$post_types = Settings::get_supported_post_types();
 
 		foreach ( $post_types as $pt ) {
 			add_meta_box(
@@ -63,8 +60,8 @@ class Meta_Box {
 	public function render_meta_box( $post ) {
 		$post_id           = $post->ID;
 		$is_pro            = Settings::is_pro();
-		$is_system_utility = ( ! empty( $post->post_name ) && in_array( $post->post_name, array( 'cart', 'checkout', 'my-account', 'myaccount', 'order-pay', 'order-received', 'lost-password', 'password-reset', 'reset-password' ), true ) );
-		$is_user_excluded  = ( '1' === get_post_meta( $post_id, '_naso_exclude_from_ai', true ) );
+		$is_system_utility = LLMS_Generator::is_system_utility_page( $post );
+		$is_user_excluded  = ( '1' === get_post_meta( $post_id, '_naso_exclude_from_ai', true ) || ( ! $is_system_utility && LLMS_Generator::is_excluded_utility_page( $post ) ) );
 
 		// System / E-Commerce utility pages (Cart, Checkout, Account) are hard-excluded from AI search.
 		if ( $is_system_utility ) {
@@ -174,12 +171,10 @@ class Meta_Box {
 						<?php endif; ?>
 					</div>
 
-					<?php if ( $has_scanned ) : ?>
-						<a href="<?php echo esc_url( $pdf_url ); ?>" target="_blank" class="naso-btn-secondary" style="text-decoration: none;">
-							<span class="dashicons dashicons-media-document"></span>
-							<span><?php esc_html_e( 'PDF Report', 'nexura-ai-search-optimizer' ); ?></span>
-						</a>
-					<?php endif; ?>
+					<a href="<?php echo esc_url( $pdf_url ); ?>" target="_blank" class="naso-btn-secondary naso-mb-pdf-btn" style="<?php echo $has_scanned ? 'text-decoration: none;' : 'text-decoration: none; display: none;'; ?>">
+						<span class="dashicons dashicons-media-document"></span>
+						<span><?php esc_html_e( 'PDF Report', 'nexura-ai-search-optimizer' ); ?></span>
+					</a>
 				</div>
 			</div>
 
@@ -212,6 +207,21 @@ class Meta_Box {
 			</div>
 
 			<!-- Exclusion Control -->
+			<?php
+			$ai_summary      = get_post_meta( $post_id, '_naso_ai_summary', true );
+			$show_ai_summary = ( '1' === (string) get_post_meta( $post_id, '_naso_show_ai_summary', true ) );
+			?>
+			<div class="naso-mb-summary-box" style="margin-top: 16px; padding-top: 14px; border-top: 1px solid #dcdcde;">
+				<label for="naso_ai_summary" style="display: block; font-weight: 600; font-size: 13px; color: #1d2327; margin-bottom: 6px;">
+					⚡ <?php esc_html_e( 'AI Key Takeaways / BLUF Summary Box (TL;DR)', 'nexura-ai-search-optimizer' ); ?>
+				</label>
+				<textarea id="naso_ai_summary" name="naso_ai_summary" rows="3" style="width: 100%; font-size: 13px;" placeholder="<?php esc_attr_e( 'Write a concise 40–60 word direct answer or summary here. Included in /llms.txt, Speakable Schema, and optional top-of-post Key Takeaways box (or use [nexura_ai_summary] shortcode).', 'nexura-ai-search-optimizer' ); ?>"><?php echo esc_textarea( $ai_summary ); ?></textarea>
+				<label for="naso_show_ai_summary" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12px; color: #50575e; cursor: pointer;">
+					<input type="checkbox" id="naso_show_ai_summary" name="naso_show_ai_summary" value="1" <?php checked( $show_ai_summary ); ?> />
+					<span><?php esc_html_e( 'Display Key Takeaways box automatically at the top of this post (or place [nexura_ai_summary] anywhere)', 'nexura-ai-search-optimizer' ); ?></span>
+				</label>
+			</div>
+
 			<div class="naso-mb-exclude-toggle" style="margin-top: 15px; padding-top: 12px; border-top: 1px solid #dcdcde; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
 				<label for="naso_exclude_from_ai" style="display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; cursor: pointer; color: #50575e;">
 					<input type="checkbox" id="naso_exclude_from_ai" name="naso_exclude_from_ai" value="1" <?php checked( $is_user_excluded ); ?> />
@@ -294,6 +304,9 @@ class Meta_Box {
 		}
 
 		$data = AI_Prompt_Fix::generate_prompt_data( $post_id );
+		if ( empty( $data['success'] ) ) {
+			wp_send_json_error( $data );
+		}
 
 		wp_send_json_success( $data );
 	}
@@ -320,6 +333,22 @@ class Meta_Box {
 			return;
 		}
 
+		// Save AI Key Takeaways summary and display toggle
+		if ( isset( $_POST['naso_ai_summary'] ) ) {
+			$summary_val = sanitize_textarea_field( wp_unslash( $_POST['naso_ai_summary'] ) );
+			if ( ! empty( $summary_val ) ) {
+				update_post_meta( $post_id, '_naso_ai_summary', $summary_val );
+			} else {
+				delete_post_meta( $post_id, '_naso_ai_summary' );
+			}
+		}
+
+		if ( isset( $_POST['naso_show_ai_summary'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['naso_show_ai_summary'] ) ) ) {
+			update_post_meta( $post_id, '_naso_show_ai_summary', '1' );
+		} else {
+			delete_post_meta( $post_id, '_naso_show_ai_summary' );
+		}
+
 		// Check if user set exclusion
 		if ( isset( $_POST['naso_exclude_from_ai'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['naso_exclude_from_ai'] ) ) ) {
 			update_post_meta( $post_id, '_naso_exclude_from_ai', '1' );
@@ -331,5 +360,7 @@ class Meta_Box {
 		} else {
 			delete_post_meta( $post_id, '_naso_exclude_from_ai' );
 		}
+
+		LLMS_Generator::flush_excluded_cache();
 	}
 }

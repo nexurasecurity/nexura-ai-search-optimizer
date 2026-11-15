@@ -63,16 +63,23 @@ class Settings {
 			'allow_perplexity'         => 1, // Perplexity AI
 			'allow_googlebot'          => 1, // Google AI Overviews & Search
 			'allow_applebot'           => 1, // Apple Intelligence
+			'allow_chatgpt_user'       => 1, // Live User-Triggered Fetchers (ChatGPT-User, Claude-User, Perplexity-User)
+			'allow_duckassist'         => 1, // DuckAssistBot, Amazonbot, YouBot
 
 			'block_gptbot'             => 0, // Model training scraper
 			'block_claudebot'          => 0, // Model training scraper
 			'block_google_extended'    => 0, // Gemini training (Note: does not block AI Overviews)
 			'block_applebot_extended'  => 0, // Apple AI training
+			'block_meta_external'      => 0, // Meta-ExternalAgent training scraper
 			'block_bytespider'         => 1, // ByteDance aggressive scraper
 
 			// Google AI Overviews Snippet Controls
 			'geo_snippet_controls'     => 0,
 			'max_snippet_length'       => -1, // -1 = unrestricted
+
+			// IndexNow Instant Indexing (Bing, Copilot & ChatGPT Search)
+			'indexnow_enabled'         => 1,
+			'indexnow_api_key'         => '',
 
 			// Data retention
 			'delete_data_on_uninstall' => 0,
@@ -134,13 +141,30 @@ class Settings {
 	}
 
 	/**
+	 * Update a single key in the static runtime cache without flushing transients.
+	 *
+	 * @param string $key   Setting key.
+	 * @param mixed  $value Setting value.
+	 * @return void
+	 */
+	public static function set_runtime_value( $key, $value ) {
+		if ( null === self::$settings ) {
+			self::get_all();
+		}
+		self::$settings[ $key ] = $value;
+	}
+
+	/**
 	 * Get all supported post types including WooCommerce products if active.
 	 *
 	 * @return array
 	 */
 	public static function get_supported_post_types() {
-		$types = (array) self::get( 'post_types', array( 'post', 'page' ) );
-		if ( ( post_type_exists( 'product' ) || class_exists( 'WooCommerce' ) ) && ! in_array( 'product', $types, true ) ) {
+		$raw_options = get_option( self::OPTION_NAME, array() );
+		$types       = (array) self::get( 'post_types', array( 'post', 'page' ) );
+
+		// Auto-include WooCommerce 'product' by default unless admin explicitly saved post_types without it
+		if ( ( ! is_array( $raw_options ) || ! isset( $raw_options['post_types'] ) ) && ( post_type_exists( 'product' ) || class_exists( 'WooCommerce' ) ) && ! in_array( 'product', $types, true ) ) {
 			$types[] = 'product';
 		}
 		return array_values( array_unique( $types ) );
@@ -221,10 +245,13 @@ class Settings {
 				'allow_perplexity',
 				'allow_googlebot',
 				'allow_applebot',
+				'allow_chatgpt_user',
+				'allow_duckassist',
 				'block_gptbot',
 				'block_claudebot',
 				'block_google_extended',
 				'block_applebot_extended',
+				'block_meta_external',
 				'block_bytespider',
 				'geo_snippet_controls',
 			);
@@ -245,6 +272,7 @@ class Settings {
 			}
 			$clean['markdown_output_enabled']  = ! empty( $input['markdown_output_enabled'] ) ? 1 : 0;
 			$clean['markdown_head_link']       = ! empty( $input['markdown_head_link'] ) ? 1 : 0;
+			$clean['indexnow_enabled']         = ! empty( $input['indexnow_enabled'] ) ? 1 : 0;
 			$clean['delete_data_on_uninstall'] = ! empty( $input['delete_data_on_uninstall'] ) ? 1 : 0;
 
 		} else {
@@ -261,12 +289,16 @@ class Settings {
 				'allow_perplexity',
 				'allow_googlebot',
 				'allow_applebot',
+				'allow_chatgpt_user',
+				'allow_duckassist',
 				'block_gptbot',
 				'block_claudebot',
 				'block_google_extended',
 				'block_applebot_extended',
+				'block_meta_external',
 				'block_bytespider',
 				'geo_snippet_controls',
+				'indexnow_enabled',
 				'delete_data_on_uninstall',
 				'onboarding_completed',
 			);
@@ -281,6 +313,12 @@ class Settings {
 			}
 			if ( isset( $input['site_summary'] ) ) {
 				$clean['site_summary'] = sanitize_textarea_field( $input['site_summary'] );
+			}
+			if ( isset( $input['excluded_post_ids'] ) ) {
+				$clean['excluded_post_ids'] = sanitize_text_field( $input['excluded_post_ids'] );
+			}
+			if ( isset( $input['indexnow_api_key'] ) ) {
+				$clean['indexnow_api_key'] = sanitize_text_field( $input['indexnow_api_key'] );
 			}
 			if ( isset( $input['max_links'] ) ) {
 				$clean['max_links'] = max( 10, min( 500, absint( $input['max_links'] ) ) );
@@ -299,6 +337,9 @@ class Settings {
 		// Invalidate cache whenever settings are saved.
 		require_once NEXURA_AI_SEARCH_DIR . 'includes/class-cache.php';
 		Cache::flush_all();
+		if ( class_exists( '\NexuraAISearch\LLMS_Generator' ) ) {
+			LLMS_Generator::flush_excluded_cache();
+		}
 
 		return $clean;
 	}

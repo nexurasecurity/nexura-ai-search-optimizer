@@ -46,6 +46,9 @@ class AI_Prompt_Fix {
 
 		$auditor = new GEO_Audit();
 		$audit   = $auditor->audit_post( $post_id );
+		if ( empty( $audit['success'] ) ) {
+			return $audit;
+		}
 
 		$title      = html_entity_decode( get_the_title( $post ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
 		$post_type  = get_post_type( $post );
@@ -115,9 +118,10 @@ class AI_Prompt_Fix {
 		$prompt .= "Provide the complete, revised, publication-ready content in clean Markdown format with proper headings, lists, and direct answers ready to publish directly on the site.\n";
 
 		return array(
-			'success'         => true,
-			'post_id'         => $post_id,
-			'title'           => $title,
+			'success'          => true,
+			'id'               => $post_id,
+			'post_id'          => $post_id,
+			'title'            => $title,
 			'score'           => $score,
 			'rating'          => $rating,
 			'badge_class'     => isset( $audit['badge_class'] ) ? $audit['badge_class'] : 'naso-badge-warning',

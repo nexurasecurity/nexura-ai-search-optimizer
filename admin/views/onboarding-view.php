@@ -135,9 +135,12 @@ unset( $public_types['attachment'] );
 						<tr>
 							<th scope="row"><?php esc_html_e( 'Post Types', 'nexura-ai-search-optimizer' ); ?></th>
 							<td>
-								<?php foreach ( $public_types as $type_slug => $type_obj ) : ?>
+								<?php
+								$supported_post_types = Settings::get_supported_post_types();
+								foreach ( $public_types as $type_slug => $type_obj ) :
+								?>
 									<label style="display: inline-block; margin-right: 15px;">
-										<input type="checkbox" name="post_types[]" value="<?php echo esc_attr( $type_slug ); ?>" <?php checked( in_array( $type_slug, (array) $settings['post_types'], true ) ); ?> />
+										<input type="checkbox" name="post_types[]" value="<?php echo esc_attr( $type_slug ); ?>" <?php checked( in_array( $type_slug, $supported_post_types, true ) ); ?> />
 										<?php echo esc_html( $type_obj->labels->name ); ?>
 									</label>
 								<?php endforeach; ?>
@@ -248,7 +251,19 @@ unset( $public_types['attachment'] );
 
 					<!-- Baseline GEO Test Widget -->
 					<?php
-					$sample_post = get_posts( array( 'numberposts' => 1, 'post_status' => 'publish' ) );
+					require_once NEXURA_AI_SEARCH_DIR . 'includes/class-llms-generator.php';
+					$raw_samples = get_posts( array(
+						'numberposts' => 10,
+						'post_type'   => Settings::get_supported_post_types(),
+						'post_status' => 'publish',
+					) );
+					$sample_post = array();
+					foreach ( $raw_samples as $sp ) {
+						if ( ! \NexuraAISearch\LLMS_Generator::is_excluded_utility_page( $sp ) ) {
+							$sample_post[] = $sp;
+							break;
+						}
+					}
 					if ( ! empty( $sample_post ) ) :
 					?>
 						<div class="naso-audit-inline-card">

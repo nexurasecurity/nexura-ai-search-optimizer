@@ -77,11 +77,38 @@ $settings = Settings::get_all();
 					</td>
 				</tr>
 				<tr>
+					<th scope="row"><?php esc_html_e( 'Google AI Overviews', 'nexura-ai-search-optimizer' ); ?></th>
+					<td>
+						<label for="naso_allow_googlebot">
+							<input type="checkbox" id="naso_allow_googlebot" name="<?php echo esc_attr( Settings::OPTION_NAME ); ?>[allow_googlebot]" value="1" <?php checked( 1, $settings['allow_googlebot'] ); ?> />
+							<code>User-agent: Googlebot</code> (<?php esc_html_e( 'Google Search & Google AI Overviews citations', 'nexura-ai-search-optimizer' ); ?>)
+						</label>
+					</td>
+				</tr>
+				<tr>
 					<th scope="row"><?php esc_html_e( 'Apple Intelligence', 'nexura-ai-search-optimizer' ); ?></th>
 					<td>
 						<label for="naso_allow_applebot">
 							<input type="checkbox" id="naso_allow_applebot" name="<?php echo esc_attr( Settings::OPTION_NAME ); ?>[allow_applebot]" value="1" <?php checked( 1, $settings['allow_applebot'] ); ?> />
 							<code>User-agent: Applebot</code> (<?php esc_html_e( 'Siri & Apple Intelligence spotlight search', 'nexura-ai-search-optimizer' ); ?>)
+						</label>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Live User-Triggered AI Agents', 'nexura-ai-search-optimizer' ); ?></th>
+					<td>
+						<label for="naso_allow_chatgpt_user">
+							<input type="checkbox" id="naso_allow_chatgpt_user" name="<?php echo esc_attr( Settings::OPTION_NAME ); ?>[allow_chatgpt_user]" value="1" <?php checked( 1, $settings['allow_chatgpt_user'] ); ?> />
+							<code>ChatGPT-User, Claude-User, Perplexity-User</code> (<?php esc_html_e( 'On-demand live web fetching when a human prompts an AI assistant', 'nexura-ai-search-optimizer' ); ?>)
+						</label>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'DuckAssist, Amazon & You.com', 'nexura-ai-search-optimizer' ); ?></th>
+					<td>
+						<label for="naso_allow_duckassist">
+							<input type="checkbox" id="naso_allow_duckassist" name="<?php echo esc_attr( Settings::OPTION_NAME ); ?>[allow_duckassist]" value="1" <?php checked( 1, $settings['allow_duckassist'] ); ?> />
+							<code>DuckAssistBot, Amazonbot, YouBot</code> (<?php esc_html_e( 'DuckDuckGo AI Answers, Amazon Rufus AI & You.com citations', 'nexura-ai-search-optimizer' ); ?>)
 						</label>
 					</td>
 				</tr>
@@ -134,6 +161,24 @@ $settings = Settings::get_all();
 							<strong><?php esc_html_e( 'Official Google Note:', 'nexura-ai-search-optimizer' ); ?></strong>
 							<?php esc_html_e( 'Google-Extended blocks Gemini model training, but per Google documentation, it does NOT block your content from appearing in Google AI Overviews.', 'nexura-ai-search-optimizer' ); ?>
 						</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Apple AI Training', 'nexura-ai-search-optimizer' ); ?></th>
+					<td>
+						<label for="naso_block_applebot_extended">
+							<input type="checkbox" id="naso_block_applebot_extended" name="<?php echo esc_attr( Settings::OPTION_NAME ); ?>[block_applebot_extended]" value="1" <?php checked( 1, $settings['block_applebot_extended'] ); ?> />
+							<code>Disallow: Applebot-Extended</code> (<?php esc_html_e( 'Blocks Apple foundation model training while keeping Siri search active', 'nexura-ai-search-optimizer' ); ?>)
+						</label>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Meta AI Training (Llama)', 'nexura-ai-search-optimizer' ); ?></th>
+					<td>
+						<label for="naso_block_meta_external">
+							<input type="checkbox" id="naso_block_meta_external" name="<?php echo esc_attr( Settings::OPTION_NAME ); ?>[block_meta_external]" value="1" <?php checked( 1, $settings['block_meta_external'] ); ?> />
+							<code>Disallow: Meta-ExternalAgent</code> (<?php esc_html_e( 'Blocks Meta Llama foundation model training scraper', 'nexura-ai-search-optimizer' ); ?>)
+						</label>
 					</td>
 				</tr>
 			</tbody>

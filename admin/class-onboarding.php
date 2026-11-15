@@ -159,7 +159,9 @@ class Onboarding {
 			$settings['llms_enabled']      = ! empty( $_POST['llms_enabled'] ) ? 1 : 0;
 			$settings['llms_full_enabled'] = ! empty( $_POST['llms_full_enabled'] ) ? 1 : 0;
 			if ( ! empty( $_POST['post_types'] ) && is_array( $_POST['post_types'] ) ) {
-				$settings['post_types'] = array_map( 'sanitize_key', $_POST['post_types'] );
+				$settings['post_types'] = array_values( array_filter( array_map( 'sanitize_key', wp_unslash( $_POST['post_types'] ) ) ) );
+			} else {
+				$settings['post_types'] = array( 'post', 'page' );
 			}
 		} elseif ( 3 === $step ) {
 			$settings['allow_oai_searchbot']    = ! empty( $_POST['allow_oai_searchbot'] ) ? 1 : 0;
@@ -203,7 +205,11 @@ class Onboarding {
 		$current = Settings::get_all();
 		foreach ( $data as $k => $v ) {
 			if ( array_key_exists( $k, $current ) ) {
-				$current[ $k ] = sanitize_text_field( $v );
+				if ( is_array( $v ) ) {
+					$current[ $k ] = array_values( array_filter( array_map( 'sanitize_key', $v ) ) );
+				} else {
+					$current[ $k ] = sanitize_text_field( $v );
+				}
 			}
 		}
 

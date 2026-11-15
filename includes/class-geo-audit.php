@@ -57,9 +57,27 @@ class GEO_Audit {
 		$content = $post->post_content;
 		$url     = get_permalink( $post );
 
+		// Ensure global $post is populated during AJAX audits so shortcodes/blocks resolve get_the_ID()
+		$prev_post       = isset( $GLOBALS['post'] ) ? $GLOBALS['post'] : null;
+		$GLOBALS['post'] = $post;
+		setup_postdata( $post );
+
 		// Render content with standard filters
 		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Standard WordPress core filter.
 		$rendered_content = apply_filters( 'the_content', $content );
+
+		$GLOBALS['post'] = $prev_post;
+		if ( $prev_post instanceof \WP_Post ) {
+			setup_postdata( $prev_post );
+		} else {
+			wp_reset_postdata();
+		}
+
+		// Prepend AI Key Takeaways summary if configured on the post so BLUF scoring accounts for it
+		$ai_summary = get_post_meta( $post_id, '_naso_ai_summary', true );
+		if ( ! empty( $ai_summary ) && strpos( $rendered_content, 'naso-ai-summary-box' ) === false ) {
+			$rendered_content = '<p class="naso-ai-summary-box">' . esc_html( $ai_summary ) . "</p>\n" . $rendered_content;
+		}
 
 		// If page markup lacks JSON-LD, incorporate post schema diagnostics
 		if ( strpos( $rendered_content, 'application/ld+json' ) === false ) {

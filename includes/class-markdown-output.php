@@ -22,7 +22,40 @@ class Markdown_Output {
 	 * @return void
 	 */
 	public function register_hooks() {
+		add_action( 'send_headers', array( $this, 'send_http_discovery_headers' ) );
 		add_action( 'wp_head', array( $this, 'output_head_links' ), 5 );
+		add_shortcode( 'nexura_ai_summary', array( $this, 'render_ai_summary_shortcode' ) );
+		add_filter( 'the_content', array( $this, 'prepend_ai_summary_box' ), 5 );
+	}
+
+	/**
+	 * Send HTTP Link headers per llmstxt.org v2 specification for headless AI agents.
+	 *
+	 * @return void
+	 */
+	public function send_http_discovery_headers() {
+		if ( is_admin() || headers_sent() ) {
+			return;
+		}
+
+		$links = array();
+
+		if ( Settings::get( 'llms_enabled', 1 ) ) {
+			$links[] = '<' . esc_url_raw( home_url( '/llms.txt' ) ) . '>; rel="describedby"; type="text/plain"';
+		}
+
+		if ( is_singular() && Settings::get( 'markdown_output_enabled', 1 ) && Settings::get( 'markdown_head_link', 1 ) ) {
+			$post_id  = get_queried_object_id();
+			$post_url = get_permalink( $post_id );
+			if ( $post_url ) {
+				$md_url  = add_query_arg( 'format', 'markdown', $post_url );
+				$links[] = '<' . esc_url_raw( $md_url ) . '>; rel="alternate"; type="text/markdown"';
+			}
+		}
+
+		if ( ! empty( $links ) ) {
+			header( 'Link: ' . implode( ', ', $links ), false );
+		}
 	}
 
 	/**
@@ -31,9 +64,11 @@ class Markdown_Output {
 	 * @return void
 	 */
 	public function output_head_links() {
-		// Output llms-txt discovery link on all public pages
+		// Output llms-txt and v2 describedby discovery links on all public pages
 		if ( Settings::get( 'llms_enabled', 1 ) ) {
-			echo '<link rel="llms-txt" href="' . esc_url( home_url( '/llms.txt' ) ) . '" title="LLMs.txt" />' . "\n";
+			$llms_url = home_url( '/llms.txt' );
+			echo '<link rel="llms-txt" href="' . esc_url( $llms_url ) . '" title="LLMs.txt" />' . "\n";
+			echo '<link rel="describedby" type="text/plain" href="' . esc_url( $llms_url ) . '" title="LLMs.txt" />' . "\n";
 		}
 
 		// Output alternate markdown link on singular posts/pages
@@ -103,13 +138,23 @@ class Markdown_Output {
 
 		$output .= '# ' . $title . "\n\n";
 
-		if ( ! empty( $description ) ) {
+		$ai_summary = get_post_meta( $post->ID, '_naso_ai_summary', true );
+		if ( ! empty( $ai_summary ) ) {
+			$output .= '> **Key Takeaways (AI Summary):** ' . LLMS_Generator::clean_plain_text( wp_strip_all_tags( $ai_summary ) ) . "\n\n";
+		} elseif ( ! empty( $description ) ) {
 			$output .= '> ' . trim( $description ) . "\n\n";
 		}
+
+		// Set up global post context so shortcodes and WooCommerce filters resolve get_the_ID() on .md URLs
+		global $post;
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Required for apply_filters('the_content') on custom .md endpoint.
+		$post = get_post( $post_id );
+		setup_postdata( $post );
 
 		// Filter the content using WordPress default filters (to expand shortcodes & blocks)
 		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Standard WordPress core filter.
 		$raw_html = apply_filters( 'the_content', $post->post_content );
+		wp_reset_postdata();
 
 		// Convert HTML to clean Markdown
 		$output .= $this->convert_html_to_markdown( $raw_html );
@@ -120,7 +165,8 @@ class Markdown_Output {
 		header( 'Link: <' . esc_url_raw( $url ) . '>; rel="canonical"' );
 		header( 'Cache-Control: public, max-age=86400' );
 
-		echo wp_kses_post( $output );
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Plain text Markdown endpoint; wp_kses_post corrupts code blocks and markdown syntax.
+		echo $output;
 		exit;
 	}
 
@@ -309,13 +355,81 @@ class Markdown_Output {
 		// 13. Strip any remaining HTML tags
 		$clean = wp_strip_all_tags( $html );
 
-		// 14. Decode HTML entities and clean ellipses for AI models
+		// 14. Decode HTML entities and clean ellipses for AI models while preserving code indentation
 		require_once NEXURA_AI_SEARCH_DIR . 'includes/class-llms-generator.php';
-		$clean = LLMS_Generator::clean_plain_text( $clean );
+		$clean = LLMS_Generator::clean_plain_text( $clean, true );
 
 		// 15. Normalize excessive newlines (max 2 consecutive newlines)
 		$clean = preg_replace( "/\n{3,}/", "\n\n", $clean );
 
 		return trim( $clean );
+	}
+
+	/**
+	 * Render the [nexura_ai_summary] shortcode.
+	 *
+	 * @param array  $atts    Shortcode attributes.
+	 * @param string $content Optional enclosed summary text.
+	 * @return string HTML markup for the Key Takeaways box.
+	 */
+	public function render_ai_summary_shortcode( $atts = array(), $content = '' ) {
+		$atts = shortcode_atts(
+			array(
+				'title' => __( 'Key Takeaways (AI Summary)', 'nexura-ai-search-optimizer' ),
+			),
+			$atts,
+			'nexura_ai_summary'
+		);
+
+		$summary_text = ! empty( $content ) ? $content : get_post_meta( get_the_ID(), '_naso_ai_summary', true );
+		if ( empty( $summary_text ) ) {
+			return '';
+		}
+
+		return $this->build_ai_summary_html( $summary_text, $atts['title'] );
+	}
+
+	/**
+	 * Automatically prepend the AI Summary / Key Takeaways box if enabled on the post.
+	 *
+	 * @param string $content Post HTML content.
+	 * @return string Modified HTML content.
+	 */
+	public function prepend_ai_summary_box( $content ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( is_admin() || ! is_singular() || ! in_the_loop() || ! is_main_query() || isset( $_GET['format'] ) ) {
+			return $content;
+		}
+
+		$post_id = get_the_ID();
+		if ( ! $post_id || has_shortcode( $content, 'nexura_ai_summary' ) ) {
+			return $content;
+		}
+
+		$show_box = get_post_meta( $post_id, '_naso_show_ai_summary', true );
+		$summary  = get_post_meta( $post_id, '_naso_ai_summary', true );
+
+		if ( '1' === (string) $show_box && ! empty( $summary ) ) {
+			return $this->build_ai_summary_html( $summary, __( 'Key Takeaways (AI Summary)', 'nexura-ai-search-optimizer' ) ) . "\n" . $content;
+		}
+
+		return $content;
+	}
+
+	/**
+	 * Build semantic HTML for the AI Summary / Key Takeaways box.
+	 *
+	 * @param string $summary_text Summary text.
+	 * @param string $heading      Box heading.
+	 * @return string
+	 */
+	private function build_ai_summary_html( $summary_text, $heading ) {
+		$clean_summary = wp_kses_post( wpautop( trim( $summary_text ) ) );
+		return sprintf(
+			'<div role="note" class="naso-ai-summary-box" aria-label="%1$s" style="background:#f0f6fc; border:1px solid #c5d9ed; border-left:4px solid #2271b1; border-radius:6px; padding:16px 20px; margin:0 0 24px 0; font-size:0.96em; line-height:1.6;"><div style="font-weight:700; color:#1d2327; margin-bottom:6px; font-size:1.02em;">⚡ %2$s</div><div class="naso-ai-summary-content" style="color:#2c3338;">%3$s</div></div>',
+			esc_attr( $heading ),
+			esc_html( $heading ),
+			$clean_summary
+		);
 	}
 }

@@ -223,7 +223,7 @@ class Background_Scanner {
 	public function ajax_scan_batch() {
 		check_ajax_referer( 'naso_admin_nonce', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'edit_posts' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Unauthorized access.', 'nexura-ai-search-optimizer' ) ) );
 		}
 
@@ -293,7 +293,7 @@ class Background_Scanner {
 				<div style="font-size:11px; color:#50575e; margin-top:2px;"><?php echo esc_html( $rating ); ?></div>
 			<?php endif; ?>
 			<div class="row-actions visible" style="margin-top: 4px; font-size: 11px;">
-				<span class="naso-act-audit"><a href="<?php echo esc_url( $audit_url ); ?>" title="<?php esc_attr_e( 'Run Full GEO Content Audit', 'nexura-ai-search-optimizer' ); ?>"><?php esc_html_e( 'Scan', 'nexura-ai-search-optimizer' ); ?></a> | </span>
+				<span class="naso-act-audit"><a href="#" class="naso-trigger-row-scan" data-id="<?php echo esc_attr( $p_id ); ?>" title="<?php esc_attr_e( 'Re-Scan GEO Score Instantly', 'nexura-ai-search-optimizer' ); ?>"><?php esc_html_e( 'Scan', 'nexura-ai-search-optimizer' ); ?></a> | </span>
 				<?php if ( $score < 100 ) : ?>
 					<span class="naso-act-prompt"><a href="#" class="naso-trigger-ai-prompt" data-id="<?php echo esc_attr( $p_id ); ?>" style="color:#2271b1; font-weight:600;" title="<?php esc_attr_e( '1-Click AI Fix Prompt for ChatGPT / Claude', 'nexura-ai-search-optimizer' ); ?>">🤖 <?php esc_html_e( 'AI Fix', 'nexura-ai-search-optimizer' ); ?></a> | </span>
 				<?php endif; ?>

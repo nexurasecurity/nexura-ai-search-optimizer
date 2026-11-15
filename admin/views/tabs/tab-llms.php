@@ -75,9 +75,12 @@ unset( $public_types['attachment'] );
 					<td>
 						<fieldset>
 							<legend class="screen-reader-text"><?php esc_html_e( 'Included Post Types', 'nexura-ai-search-optimizer' ); ?></legend>
-							<?php foreach ( $public_types as $type_slug => $type_obj ) : ?>
+							<?php
+							$supported_post_types = Settings::get_supported_post_types();
+							foreach ( $public_types as $type_slug => $type_obj ) :
+							?>
 								<label style="display: inline-block; margin-right: 15px; margin-bottom: 5px;">
-									<input type="checkbox" name="<?php echo esc_attr( Settings::OPTION_NAME ); ?>[post_types][]" value="<?php echo esc_attr( $type_slug ); ?>" <?php checked( in_array( $type_slug, (array) $settings['post_types'], true ) ); ?> />
+									<input type="checkbox" name="<?php echo esc_attr( Settings::OPTION_NAME ); ?>[post_types][]" value="<?php echo esc_attr( $type_slug ); ?>" <?php checked( in_array( $type_slug, $supported_post_types, true ) ); ?> />
 									<?php echo esc_html( $type_obj->labels->name ); ?> (<code><?php echo esc_html( $type_slug ); ?></code>)
 								</label>
 							<?php endforeach; ?>

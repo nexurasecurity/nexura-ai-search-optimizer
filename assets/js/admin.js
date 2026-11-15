@@ -314,6 +314,9 @@
 							$mbSlot.html('<button type="button" class="naso-btn-secondary naso-trigger-ai-prompt" data-id="' + data.id + '"><span class="dashicons dashicons-rest-api" style="color: #2271b1;"></span> <span>1-Click AI Fix Prompt</span></button>');
 						}
 					}
+
+					// Reveal PDF Report button after scan
+					$container.find('.naso-mb-pdf-btn').css('display', 'inline-flex');
 				} else {
 					alert(response.data ? response.data.message : 'Scan failed.');
 				}
@@ -373,9 +376,10 @@
 			modalHtml += '<button type="button" class="naso-btn-secondary" id="naso-dismiss-modal-btn">Close</button>';
 			modalHtml += '<button type="button" class="naso-btn-secondary" id="naso-copy-prompt-btn"><span class="dashicons dashicons-clipboard"></span> Copy Prompt</button>';
 
+			var modalPostId = data.post_id || data.id || '';
 			if (hasProAi) {
-				modalHtml += '<button type="button" class="naso-btn-primary" id="naso-run-auto-ai-fix-btn" data-id="' + data.id + '" style="background:#2271b1; font-weight:600;"><span class="dashicons dashicons-superhero-alt"></span> ⚡ Auto-Fix with AI (1-Click)</button>';
-				modalHtml += '<button type="button" class="naso-btn-success" id="naso-apply-rewritten-btn" data-id="' + data.id + '" style="display:none; font-weight:600;"><span class="dashicons dashicons-yes-alt"></span> Apply to Post & Re-Score</button>';
+				modalHtml += '<button type="button" class="naso-btn-primary" id="naso-run-auto-ai-fix-btn" data-id="' + escapeHtml(modalPostId) + '" style="background:#2271b1; font-weight:600;"><span class="dashicons dashicons-superhero-alt"></span> ⚡ Auto-Fix with AI (1-Click)</button>';
+				modalHtml += '<button type="button" class="naso-btn-success" id="naso-apply-rewritten-btn" data-id="' + escapeHtml(modalPostId) + '" style="display:none; font-weight:600;"><span class="dashicons dashicons-yes-alt"></span> Apply to Post & Re-Score</button>';
 			} else if (isPro) {
 				modalHtml += '<a href="' + proAgentUrl + '" target="_blank" class="naso-btn-primary" style="background:#2271b1; text-decoration:none; display:inline-flex; align-items:center; gap:5px; font-weight:600;"><span class="dashicons dashicons-admin-generic"></span> Connect AI Key (Enable 1-Click Fix)</a>';
 			} else {
@@ -603,6 +607,65 @@
 			});
 		});
 
+		// Helper to sync live WordPress editor, Meta Box, Audit Tab, and List Table after AI Rewrite is applied
+		function syncPostAfterAiApply(postId, data, htmlContent) {
+			var score = data.new_score || (data.audit && data.audit.score) || 88;
+			var rating = data.new_rating || (data.audit && data.audit.rating) || 'Optimal for AI Engine Citations';
+			var badgeClass = data.new_badge || (data.audit && data.audit.badge_class) || 'naso-badge-success';
+			var recs = (data.audit && data.audit.recommendations) ? data.audit.recommendations : [];
+
+			// 1. Update live WordPress editor on post.php so clicking "Update" does not overwrite AI content
+			if (htmlContent) {
+				if ($('#content').length) {
+					$('#content').val(htmlContent);
+				}
+				if (typeof window.tinyMCE !== 'undefined' && window.tinyMCE.get('content')) {
+					window.tinyMCE.get('content').setContent(htmlContent);
+				}
+				if (typeof window.wp !== 'undefined' && window.wp.data && window.wp.data.dispatch && window.wp.blocks) {
+					try {
+						var blockEditor = window.wp.data.dispatch('core/block-editor') || window.wp.data.dispatch('core/editor');
+						if (blockEditor && typeof blockEditor.resetBlocks === 'function') {
+							blockEditor.resetBlocks(window.wp.blocks.parse(htmlContent));
+						}
+					} catch (err) {
+						// Ignore if not in block editor context
+					}
+				}
+			}
+
+			// 2. Update List Table cell if visible
+			var $cell = $('.naso-table-cell[data-post-id="' + postId + '"]');
+			if ($cell.length) {
+				$cell.find('.naso-badge').attr('class', 'naso-badge ' + badgeClass).text(score + ' / 100');
+				$cell.addClass('naso-table-cell-highlight');
+			}
+
+			// 3. Update Post Edit Meta Box if visible
+			var $mbContainer = $('.naso-metabox-container[data-post-id="' + postId + '"]');
+			if ($mbContainer.length) {
+				var scoreColor = (score >= 80) ? '#00a32a' : ((score >= 50) ? '#dba617' : '#d63638');
+				$mbContainer.find('.naso-mb-score').text(score).css('color', scoreColor);
+				$mbContainer.find('.naso-mb-header h4').text(rating);
+				$mbContainer.find('.naso-mb-pdf-btn').css('display', 'inline-flex');
+
+				if (recs.length > 0) {
+					var $issuesList = $('<ul class="naso-recommendations-list" style="margin: 0; padding-left: 20px;"></ul>');
+					$.each(recs, function(i, rec) {
+						$issuesList.append('<li style="margin-bottom: 6px; font-size: 13px; color: #2c3338;"><strong>&bull;</strong> ' + escapeHtml(rec) + '</li>');
+					});
+					$mbContainer.find('.naso-mb-issues-container').html($issuesList);
+				} else {
+					$mbContainer.find('.naso-mb-issues-container').html('<p style="margin: 0; color: #00a32a; font-weight: 500;">✓ Excellent! Satisfies core Generative Engine Optimization benchmarks.</p>');
+				}
+			}
+
+			// 4. Update GEO Audit Tab if visible
+			if (data.audit && $('#naso-audit-score').length) {
+				renderAuditResults(data.audit);
+			}
+		}
+
 		// 12. 1-Click Auto-Fix with AI Agent (Pro)
 		$(document).on('click', '#naso-run-auto-ai-fix-btn', function(e) {
 			e.preventDefault();
@@ -637,12 +700,7 @@
 						$status.html('<div class="notice notice-success inline" style="margin:0 0 12px 0; padding:10px;"><strong>✅ Success!</strong> Content rewritten & updated in your post. New Score: <strong>' + (data.new_score || 88) + '/100</strong> (' + escapeHtml(data.new_rating || 'Optimal for AI') + ')</div>');
 						$btn.hide();
 						$applyBtn.show().text('✅ Updated Successfully').prop('disabled', true);
-
-						// Update table cell if visible on list screen
-						var $cell = $('.naso-table-cell[data-post-id="' + postId + '"]');
-						if ($cell.length) {
-							$cell.find('.naso-badge').removeClass('naso-badge-danger naso-badge-warning').addClass('naso-badge-success').text((data.new_score || 88) + ' / 100');
-						}
+						syncPostAfterAiApply(postId, data, data.rewritten_content);
 					} else {
 						$status.html('<div class="notice notice-info inline" style="margin:0 0 12px 0; padding:10px;"><strong>✅ Content Rewritten!</strong> Review the optimized GEO content below, then click "Apply to Post" to save.</div>');
 						$btn.hide();
@@ -680,19 +738,7 @@
 					var data = response.data;
 					$btn.html('✅ Applied & Scored (' + data.new_score + '/100)');
 					$status.html('<div class="notice notice-success inline" style="margin:0 0 12px 0; padding:10px;"><strong>✅ Success!</strong> Post updated with GEO-optimized content. New Score: <strong>' + data.new_score + '/100</strong></div>');
-
-					// Update table cell badge if visible on list screen
-					var $cell = $('.naso-table-cell[data-post-id="' + postId + '"]');
-					if ($cell.length) {
-						$cell.find('.naso-badge').attr('class', 'naso-badge ' + data.new_badge).text(data.new_score + ' / 100');
-						$cell.addClass('naso-table-cell-highlight');
-					}
-
-					// Update metabox if visible on edit screen
-					var $mbScore = $('.naso-mb-score');
-					if ($mbScore.length) {
-						$mbScore.text(data.new_score).css('color', '#00a32a');
-					}
+					syncPostAfterAiApply(postId, data, data.rewritten_content || content);
 				} else {
 					$btn.prop('disabled', false).text('Apply to Post');
 					alert('Failed to update post.');
@@ -707,22 +753,30 @@
 		var providerModels = {
 			openai: [
 				{ id: 'gpt-4o-mini', name: 'GPT-4o Mini (Fast & Cost-Effective - Recommended)' },
-				{ id: 'gpt-4o', name: 'GPT-4o (Most Capable & Authoritative)' },
-				{ id: 'gpt-4-turbo', name: 'GPT-4 Turbo' }
+				{ id: 'gpt-4.1-mini', name: 'GPT-4.1 Mini (Latest Fast Reasoning)' },
+				{ id: 'gpt-4.1', name: 'GPT-4.1 (Flagship Authoritative)' },
+				{ id: 'gpt-4o', name: 'GPT-4o (Multimodal Flagship)' }
 			],
 			claude: [
-				{ id: 'claude-3-5-sonnet-latest', name: 'Claude 3.5 Sonnet (Highest Writing Intelligence - Recommended)' },
+				{ id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4 (Highest Writing Intelligence - Recommended)' },
+				{ id: 'claude-3-7-sonnet-latest', name: 'Claude 3.7 Sonnet (Extended Reasoning)' },
+				{ id: 'claude-3-5-sonnet-latest', name: 'Claude 3.5 Sonnet' },
 				{ id: 'claude-3-5-haiku-latest', name: 'Claude 3.5 Haiku (Lightning Fast)' }
 			],
 			gemini: [
-				{ id: 'gemini-1.5-flash', name: 'Gemini 1.5 Flash (Ultra Fast & Free Tier Available)' },
-				{ id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro (Deep Context)' }
+				{ id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Ultra Fast & Free Tier - Recommended)' },
+				{ id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Deep Reasoning & Context)' },
+				{ id: 'gemini-2.0-flash', name: 'Gemini 2.0 Flash (Fast & Reliable)' }
 			]
 		};
 
 		function populateAiModels(provider, selectedModel) {
 			var $select = $('#naso_ai_model');
 			if (!$select.length) return;
+
+			// Auto-upgrade legacy retired Gemini 1.5 model IDs in UI
+			if (selectedModel === 'gemini-1.5-flash') selectedModel = 'gemini-2.5-flash';
+			if (selectedModel === 'gemini-1.5-pro') selectedModel = 'gemini-2.5-pro';
 
 			$select.empty();
 			var models = providerModels[provider] || providerModels.openai;
@@ -849,22 +903,31 @@
 					var items = data.items || [];
 
 					$.each(items, function(i, item) {
+						var actionUrl = item.edit_url || item.url;
+						var actionLabel = item.edit_url ? 'Edit' : 'View';
 						var rowHtml = '<tr>' +
-							'<td><strong><a href="' + item.url + '" target="_blank">' + escapeHtml(item.title) + '</a></strong></td>' +
+							'<td><strong><a href="' + escapeHtml(item.url) + '" target="_blank">' + escapeHtml(item.title) + '</a></strong></td>' +
 							'<td>' + item.word_count + '</td>' +
 							'<td><strong>' + item.score + ' / 100</strong></td>' +
-							'<td><span class="naso-badge ' + item.badge_class + '">' + escapeHtml(item.rating) + '</span></td>' +
-							'<td><a href="' + item.url + '" class="button button-small" target="_blank">View</a></td>' +
+							'<td><span class="naso-badge ' + escapeHtml(item.badge_class) + '">' + escapeHtml(item.rating) + '</span></td>' +
+							'<td><a href="' + escapeHtml(actionUrl) + '" class="button button-small" target="_blank">' + actionLabel + '</a></td>' +
 							'</tr>';
 						$('#naso-bulk-tbody').append(rowHtml);
 					});
+
+					if (typeof data.total_scanned !== 'undefined') {
+						$('#naso-bulk-total-count').text(data.total_scanned);
+					}
+					if (typeof data.avg_score !== 'undefined') {
+						$('#naso-bulk-avg-score').html(data.avg_score + ' <span style="font-size: 16px; color:#646970;">/ 100</span>');
+					}
 
 					$('#naso-progress-percent').text(data.percentage + '%');
 					$('#naso-progress-bar').css('width', data.percentage + '%');
 					$('#naso-progress-label').text('Processed ' + data.processed + ' of ' + data.total + ' items...');
 
-					if (!data.is_complete && items.length > 0) {
-						bulkOffset += bulkLimit;
+					if (!data.is_complete && data.processed > bulkOffset) {
+						bulkOffset = data.processed;
 						runBulkBatch();
 					} else {
 						finishBulkScan();
@@ -883,7 +946,10 @@
 			isBulkRunning = false;
 			$('#naso-start-bulk-scan').prop('disabled', false).text('Start Full Library Scan');
 			$('#naso-bulk-spinner').removeClass('is-active');
-			$('#naso-clear-bulk-scan').show();
+			if (parseInt($('#naso-bulk-total-count').text(), 10) > 0) {
+				$('#naso-clear-bulk-scan').show();
+				$('.naso-bulk-export-actions').css('display', 'flex');
+			}
 		}
 
 		$('#naso-clear-bulk-scan').on('click', function(e) {

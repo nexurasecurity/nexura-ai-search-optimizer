@@ -272,7 +272,7 @@ class Admin {
 	public function ajax_run_audit() {
 		check_ajax_referer( 'naso_admin_nonce', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'edit_posts' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Unauthorized access.', 'nexura-ai-search-optimizer' ) ) );
 		}
 
@@ -283,6 +283,10 @@ class Admin {
 
 		$auditor = new GEO_Audit();
 		$result  = $auditor->audit_post( $post_id );
+
+		if ( empty( $result['success'] ) ) {
+			wp_send_json_error( $result );
+		}
 
 		wp_send_json_success( $result );
 	}

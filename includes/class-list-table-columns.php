@@ -122,9 +122,8 @@ class List_Table_Columns {
 
 		// System utility pages or User-excluded pages are excluded from AI search.
 		if ( \NexuraAISearch\LLMS_Generator::is_excluded_utility_page( $post_id ) ) {
-			$post_obj         = get_post( $post_id );
-			$is_system_util   = ( $post_obj && in_array( $post_obj->post_name, array( 'cart', 'checkout', 'my-account', 'myaccount', 'order-pay', 'order-received', 'lost-password', 'password-reset', 'reset-password' ), true ) );
-			$is_user_excluded = ( '1' === get_post_meta( $post_id, '_naso_exclude_from_ai', true ) );
+			$is_system_util   = \NexuraAISearch\LLMS_Generator::is_system_utility_page( $post_id );
+			$is_user_excluded = ! $is_system_util;
 
 			$badge_label = $is_user_excluded ? __( 'Excluded from AI', 'nexura-ai-search-optimizer' ) : ( $is_system_util ? __( 'System Page', 'nexura-ai-search-optimizer' ) : __( 'Excluded', 'nexura-ai-search-optimizer' ) );
 			$sub_label   = $is_user_excluded ? __( 'Custom Excluded from AI', 'nexura-ai-search-optimizer' ) : __( 'Excluded from SEO', 'nexura-ai-search-optimizer' );

@@ -218,23 +218,47 @@ class Schema_Diagnostics {
 			}
 		}
 
-		$title     = get_the_title( $post );
-		$url       = get_permalink( $post );
-		$author_id = $post->post_author;
-		$author    = array(
+		$title       = get_the_title( $post );
+		$url         = get_permalink( $post );
+		$author_id   = $post->post_author;
+		$author_url  = get_author_posts_url( $author_id );
+		$author_bio  = trim( wp_strip_all_tags( (string) get_the_author_meta( 'description', $author_id ) ) );
+		$author_site = esc_url_raw( (string) get_the_author_meta( 'user_url', $author_id ) );
+
+		$author = array(
 			'@type' => 'Person',
 			'name'  => get_the_author_meta( 'display_name', $author_id ) ?: get_bloginfo( 'name' ),
+			'url'   => ! empty( $author_url ) ? $author_url : home_url( '/' ),
 		);
-		$date_pub  = get_the_date( 'c', $post );
-		$date_mod  = get_the_modified_date( 'c', $post );
+		if ( ! empty( $author_bio ) ) {
+			$author['description'] = $author_bio;
+		}
+		if ( ! empty( $author_site ) ) {
+			$author['sameAs'] = array( $author_site );
+		}
+
+		$date_pub = get_the_date( 'c', $post );
+		$date_mod = get_the_modified_date( 'c', $post );
+
+		$speakable = array(
+			'@type'       => 'SpeakableSpecification',
+			'cssSelector' => array(
+				'.naso-ai-summary-box',
+				'article p:first-of-type',
+				'.entry-content p:first-of-type',
+			),
+		);
+
+		$citations = self::extract_external_citations( $post->post_content );
 
 		$graph = array();
 
 		if ( 'product' === $post->post_type && function_exists( 'wc_get_product' ) ) {
-			$wc_product = wc_get_product( $post_id );
-			$price      = $wc_product ? $wc_product->get_price() : '0.00';
-			$sku        = ( $wc_product && $wc_product->get_sku() ) ? $wc_product->get_sku() : 'SKU-' . $post_id;
-			$currency   = function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'USD';
+			$wc_product   = wc_get_product( $post_id );
+			$price        = $wc_product ? $wc_product->get_price() : '0.00';
+			$sku          = ( $wc_product && $wc_product->get_sku() ) ? $wc_product->get_sku() : 'SKU-' . $post_id;
+			$currency     = function_exists( 'get_woocommerce_currency' ) ? get_woocommerce_currency() : 'USD';
+			$availability = ( $wc_product && $wc_product->is_in_stock() ) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
 
 			$graph[] = array(
 				'@type'         => 'Product',
@@ -249,12 +273,12 @@ class Schema_Diagnostics {
 					'@type'         => 'Offer',
 					'price'         => $price,
 					'priceCurrency' => $currency,
-					'availability'  => 'https://schema.org/InStock',
+					'availability'  => $availability,
 					'url'           => $url,
 				),
 			);
 		} elseif ( 'post' === $post->post_type ) {
-			$graph[] = array(
+			$article_node = array(
 				'@type'            => 'Article',
 				'@id'              => $url . '#article',
 				'headline'         => $title,
@@ -262,15 +286,20 @@ class Schema_Diagnostics {
 				'datePublished'    => $date_pub,
 				'dateModified'     => $date_mod,
 				'author'           => $author,
+				'speakable'        => $speakable,
 				'publisher'        => array(
 					'@type' => 'Organization',
 					'name'  => get_bloginfo( 'name' ),
 					'url'   => home_url( '/' ),
 				),
 			);
+			if ( ! empty( $citations ) ) {
+				$article_node['citation'] = $citations;
+			}
+			$graph[] = $article_node;
 		}
 
-		$graph[] = array(
+		$webpage_node = array(
 			'@type'         => 'WebPage',
 			'@id'           => $url . '#webpage',
 			'url'           => $url,
@@ -278,7 +307,23 @@ class Schema_Diagnostics {
 			'datePublished' => $date_pub,
 			'dateModified'  => $date_mod,
 			'author'        => $author,
+			'speakable'     => $speakable,
 		);
+		$ai_summary = get_post_meta( $post_id, '_naso_ai_summary', true );
+		if ( ! empty( $ai_summary ) ) {
+			$webpage_node['abstract'] = wp_strip_all_tags( $ai_summary );
+		}
+		$graph[] = $webpage_node;
+
+		// Auto-extract FAQPage schema from question headings (<h2>/<h3>) + answer paragraphs
+		$faq_entities = self::extract_faq_entities( $post->post_content );
+		if ( ! empty( $faq_entities ) ) {
+			$graph[] = array(
+				'@type'      => 'FAQPage',
+				'@id'        => $url . '#faq',
+				'mainEntity' => $faq_entities,
+			);
+		}
 
 		$graph[] = array(
 			'@type'           => 'BreadcrumbList',
@@ -303,5 +348,77 @@ class Schema_Diagnostics {
 			'@context' => 'https://schema.org',
 			'@graph'   => $graph,
 		);
+	}
+
+	/**
+	 * Extract outbound external links from content to populate Article 'citation' schema property.
+	 *
+	 * @param string $html Post HTML content.
+	 * @return array List of external citation URLs.
+	 */
+	private static function extract_external_citations( $html ) {
+		if ( empty( $html ) ) {
+			return array();
+		}
+
+		$site_host = wp_parse_url( home_url(), PHP_URL_HOST );
+		$citations = array();
+
+		if ( preg_match_all( '/<a\s+[^>]*href=["\'](https?:\/\/[^"\']+)["\'][^>]*>/i', $html, $matches ) ) {
+			foreach ( $matches[1] as $link ) {
+				$link_host = wp_parse_url( $link, PHP_URL_HOST );
+				if ( ! empty( $link_host ) && $link_host !== $site_host ) {
+					$citations[] = esc_url_raw( $link );
+				}
+			}
+		}
+
+		return array_slice( array_values( array_unique( $citations ) ), 0, 15 );
+	}
+
+	/**
+	 * Automatically extract FAQ Question/Answer pairs from question headings (<h2>/<h3>) and following paragraphs.
+	 *
+	 * @param string $html Post HTML content.
+	 * @return array List of Schema.org Question entities.
+	 */
+	private static function extract_faq_entities( $html ) {
+		if ( empty( $html ) ) {
+			return array();
+		}
+
+		$entities = array();
+		$pattern  = '/<h[23][^>]*>(.*?)<\/h[23]>\s*(?:<!--[^>]*-->\s*)*<p[^>]*>(.*?)<\/p>/is';
+
+		if ( preg_match_all( $pattern, $html, $matches, PREG_SET_ORDER ) ) {
+			foreach ( $matches as $m ) {
+				$question = trim( wp_strip_all_tags( $m[1] ) );
+				$answer   = trim( wp_strip_all_tags( $m[2] ) );
+
+				if ( empty( $question ) || strlen( $answer ) < 25 ) {
+					continue;
+				}
+
+				$is_question = ( substr( $question, -1 ) === '?' ) ||
+					(bool) preg_match( '/^(what|why|how|when|where|who|which|can|does|do|is|are|should|will)\b/i', $question );
+
+				if ( $is_question ) {
+					$entities[] = array(
+						'@type'          => 'Question',
+						'name'           => $question,
+						'acceptedAnswer' => array(
+							'@type' => 'Answer',
+							'text'  => $answer,
+						),
+					);
+				}
+
+				if ( count( $entities ) >= 10 ) {
+					break;
+				}
+			}
+		}
+
+		return $entities;
 	}
 }

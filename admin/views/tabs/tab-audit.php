@@ -12,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
-$post_types = Settings::get( 'post_types', array( 'post', 'page' ) );
+$post_types = Settings::get_supported_post_types();
 $raw_posts  = get_posts( array(
 	'numberposts' => 60,
 	'post_status' => 'publish',

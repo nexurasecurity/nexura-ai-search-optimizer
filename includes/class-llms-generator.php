@@ -17,6 +17,22 @@ if ( ! defined( 'ABSPATH' ) ) {
 class LLMS_Generator {
 
 	/**
+	 * Request-level static cache for excluded post IDs to avoid N+1 SQL queries.
+	 *
+	 * @var array|null
+	 */
+	private static $excluded_ids_cache = null;
+
+	/**
+	 * Flush the in-memory excluded post IDs cache.
+	 *
+	 * @return void
+	 */
+	public static function flush_excluded_cache() {
+		self::$excluded_ids_cache = null;
+	}
+
+	/**
 	 * Output the llms content directly to output stream.
 	 *
 	 * @param bool $is_full Whether to output full content or summary index.
@@ -39,7 +55,8 @@ class LLMS_Generator {
 		header( 'X-Robots-Tag: all' );
 		header( 'Cache-Control: public, max-age=' . absint( $max_age ) );
 
-		echo wp_kses_post( $content );
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Plain text /llms.txt response; escaping with wp_kses_post corrupts Markdown code blocks and angle brackets.
+		echo $content;
 		exit;
 	}
 
@@ -47,9 +64,10 @@ class LLMS_Generator {
 	 * Decode HTML entities and sanitize for plain text AI consumption.
 	 *
 	 * @param string $text Raw text.
+	 * @param bool   $preserve_indentation Whether to preserve line-leading spaces/tabs for code blocks.
 	 * @return string Clean decoded text.
 	 */
-	public static function clean_plain_text( $text ) {
+	public static function clean_plain_text( $text, $preserve_indentation = false ) {
 		if ( empty( $text ) ) {
 			return '';
 		}
@@ -65,8 +83,10 @@ class LLMS_Generator {
 		$replace = array( "'", "'", '"', '"', '-', '--', "'", "'", ' ' );
 		$text    = str_replace( $search, $replace, $text );
 
-		// Normalize multiple whitespace to single space
-		$text = preg_replace( '/[ \t]+/', ' ', $text );
+		// Normalize multiple whitespace to single space unless preserving code block indentation
+		if ( ! $preserve_indentation ) {
+			$text = preg_replace( '/[ \t]+/', ' ', $text );
+		}
 
 		return trim( $text );
 	}
@@ -77,6 +97,10 @@ class LLMS_Generator {
 	 * @return array List of post IDs to exclude.
 	 */
 	public static function get_excluded_post_ids() {
+		if ( null !== self::$excluded_ids_cache ) {
+			return self::$excluded_ids_cache;
+		}
+
 		$excluded_ids = array();
 
 		// WooCommerce native transactional page IDs (Cart, Checkout, My Account)
@@ -130,16 +154,96 @@ class LLMS_Generator {
 			}
 		}
 
-		// Custom per-post excluded IDs from postmeta
+		// Custom per-post excluded IDs from postmeta and utility pages containing WooCommerce cart/checkout shortcodes or blocks
 		global $wpdb;
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$meta_excluded = $wpdb->get_col( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_naso_exclude_from_ai' AND meta_value = '1'" );
+		$shortcode_excluded = $wpdb->get_col(
+			"SELECT ID FROM {$wpdb->posts} WHERE post_type = 'page' AND post_status = 'publish' AND (
+				post_content LIKE '%[woocommerce_cart%' OR
+				post_content LIKE '%[woocommerce_checkout%' OR
+				post_content LIKE '%[woocommerce_my_account%' OR
+				post_content LIKE '%[woocommerce_order_tracking%' OR
+				post_content LIKE '%wp:woocommerce/cart%' OR
+				post_content LIKE '%wp:woocommerce/checkout%' OR
+				post_content LIKE '%wp:woocommerce/my-account%'
+			)"
+		);
 		// phpcs:enable
 		if ( ! empty( $meta_excluded ) ) {
 			$excluded_ids = array_merge( $excluded_ids, array_map( 'absint', (array) $meta_excluded ) );
 		}
+		if ( ! empty( $shortcode_excluded ) ) {
+			$excluded_ids = array_merge( $excluded_ids, array_map( 'absint', (array) $shortcode_excluded ) );
+		}
 
-		return array_values( array_unique( array_filter( $excluded_ids ) ) );
+		self::$excluded_ids_cache = array_values( array_unique( array_filter( $excluded_ids ) ) );
+		return self::$excluded_ids_cache;
+	}
+
+	/**
+	 * Check if a post is specifically a system or e-commerce transactional utility page
+	 * (Cart, Checkout, My Account, Order Tracking) rather than a user-excluded content page.
+	 *
+	 * @param int|\WP_Post $post Post object or ID.
+	 * @return bool
+	 */
+	public static function is_system_utility_page( $post ) {
+		$post_obj = get_post( $post );
+		if ( ! $post_obj ) {
+			return false;
+		}
+
+		if ( function_exists( 'wc_get_page_id' ) ) {
+			foreach ( array( 'cart', 'checkout', 'myaccount' ) as $wc_slug ) {
+				if ( absint( wc_get_page_id( $wc_slug ) ) === absint( $post_obj->ID ) ) {
+					return true;
+				}
+			}
+		}
+
+		foreach ( array( 'woocommerce_cart_page_id', 'woocommerce_checkout_page_id', 'woocommerce_myaccount_page_id' ) as $opt ) {
+			if ( absint( get_option( $opt ) ) === absint( $post_obj->ID ) ) {
+				return true;
+			}
+		}
+
+		$utility_slugs = array(
+			'cart',
+			'checkout',
+			'my-account',
+			'myaccount',
+			'order-pay',
+			'order-received',
+			'lost-password',
+			'password-reset',
+			'reset-password',
+		);
+		if ( ! empty( $post_obj->post_name ) && in_array( $post_obj->post_name, $utility_slugs, true ) ) {
+			return true;
+		}
+
+		if ( 'page' === $post_obj->post_type && ! empty( $post_obj->post_content ) ) {
+			$content = $post_obj->post_content;
+			if (
+				has_shortcode( $content, 'woocommerce_cart' ) ||
+				has_shortcode( $content, 'woocommerce_checkout' ) ||
+				has_shortcode( $content, 'woocommerce_my_account' ) ||
+				has_shortcode( $content, 'woocommerce_order_tracking' ) ||
+				( function_exists( 'has_block' ) && (
+					has_block( 'woocommerce/cart', $post_obj ) ||
+					has_block( 'woocommerce/checkout', $post_obj ) ||
+					has_block( 'woocommerce/my-account', $post_obj )
+				) ) ||
+				strpos( $content, 'wp:woocommerce/cart' ) !== false ||
+				strpos( $content, 'wp:woocommerce/checkout' ) !== false ||
+				strpos( $content, 'wp:woocommerce/my-account' ) !== false
+			) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
@@ -229,7 +333,7 @@ class LLMS_Generator {
 		// Guidance note for AI engines
 		$output .= "This file provides structured, canonical markdown documentation for AI agents, LLMs, and search crawlers.\n\n";
 
-		$post_types = Settings::get( 'post_types', array( 'post', 'page' ) );
+		$post_types = Settings::get_supported_post_types();
 		if ( empty( $post_types ) || ! is_array( $post_types ) ) {
 			$post_types = array( 'post', 'page' );
 		}
@@ -268,7 +372,8 @@ class LLMS_Generator {
 				$permalink  = get_permalink();
 
 				if ( $include_excerpts ) {
-					$raw_excerpt   = get_the_excerpt();
+					$ai_summary    = get_post_meta( get_the_ID(), '_naso_ai_summary', true );
+					$raw_excerpt   = ! empty( $ai_summary ) ? $ai_summary : get_the_excerpt();
 					$clean_excerpt = self::clean_plain_text( wp_strip_all_tags( $raw_excerpt ) );
 
 					if ( ! empty( $clean_excerpt ) ) {
@@ -331,6 +436,11 @@ class LLMS_Generator {
 					$output          .= '## ' . $clean_post_title . "\n\n";
 					$output          .= '**URL:** ' . get_permalink() . "\n";
 					$output          .= '**Date:** ' . get_the_date( 'Y-m-d' ) . "\n\n";
+
+					$full_ai_summary = get_post_meta( $post->ID, '_naso_ai_summary', true );
+					if ( ! empty( $full_ai_summary ) ) {
+						$output .= '> **Key Takeaways:** ' . self::clean_plain_text( wp_strip_all_tags( $full_ai_summary ) ) . "\n\n";
+					}
 
 					$content_markdown = $md_converter->convert_html_to_markdown( $post->post_content );
 					$output          .= $content_markdown . "\n\n";

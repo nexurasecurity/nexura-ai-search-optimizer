@@ -87,6 +87,13 @@ class Plugin {
 	public $background_scanner = null;
 
 	/**
+	 * IndexNow instant indexing instance.
+	 *
+	 * @var IndexNow|null
+	 */
+	public $indexnow = null;
+
+	/**
 	 * Retrieve singleton instance.
 	 *
 	 * @return Plugin
@@ -125,6 +132,7 @@ class Plugin {
 		require_once NEXURA_AI_SEARCH_DIR . 'includes/class-meta-box.php';
 		require_once NEXURA_AI_SEARCH_DIR . 'includes/class-list-table-columns.php';
 		require_once NEXURA_AI_SEARCH_DIR . 'includes/class-background-scanner.php';
+		require_once NEXURA_AI_SEARCH_DIR . 'includes/class-indexnow.php';
 
 		$this->settings           = new Settings();
 		$this->cache              = new Cache();
@@ -132,6 +140,7 @@ class Plugin {
 		$this->markdown           = new Markdown_Output();
 		$this->crawler_policy     = new Crawler_Policy();
 		$this->background_scanner = new Background_Scanner();
+		$this->indexnow           = new IndexNow();
 
 		if ( is_admin() ) {
 			require_once NEXURA_AI_SEARCH_DIR . 'admin/class-admin.php';
@@ -157,6 +166,9 @@ class Plugin {
 		$this->markdown->register_hooks();
 		$this->crawler_policy->register_hooks();
 		$this->background_scanner->register_hooks();
+		if ( $this->indexnow ) {
+			$this->indexnow->register_hooks();
+		}
 
 		if ( is_admin() ) {
 			if ( $this->admin ) {

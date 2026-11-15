@@ -37,7 +37,7 @@ class Export_PDF {
 	public function generate_report() {
 		check_admin_referer( 'naso_export_pdf', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
+		if ( ! current_user_can( 'edit_posts' ) ) {
 			wp_die( esc_html__( 'Unauthorized access.', 'nexura-ai-search-optimizer' ) );
 		}
 
@@ -84,7 +84,7 @@ class Export_PDF {
 		$score_color = '#d63638';
 		if ( $score >= 80 ) {
 			$score_color = '#00a32a';
-		} elseif ( $score >= 60 ) {
+		} elseif ( $score >= 50 ) {
 			$score_color = '#dba617';
 		}
 
@@ -382,7 +382,7 @@ class Export_PDF {
 						<?php
 						if ( $score >= 80 ) {
 							esc_html_e( 'This content demonstrates exemplary generative readiness. Highly favorable for direct citations in ChatGPT Search, Perplexity, Claude, and Google AI Overviews.', 'nexura-ai-search-optimizer' );
-						} elseif ( $score >= 60 ) {
+						} elseif ( $score >= 50 ) {
 							esc_html_e( 'Moderate AI discoverability. The content has good foundational depth, but addressing the structural recommendations below will dramatically boost citation likelihood.', 'nexura-ai-search-optimizer' );
 						} else {
 							esc_html_e( 'Needs structural optimization. AI crawlers and LLMs may deprioritize this content due to high fluff or missing authoritative citations.', 'nexura-ai-search-optimizer' );

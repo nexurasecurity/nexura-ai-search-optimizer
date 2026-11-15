@@ -4,7 +4,7 @@
  * Plugin Name:       Nexura AI Search Optimizer
  * Plugin URI:        https://wordpress.org/plugins/nexura-ai-search-optimizer
  * Description:       Optimize your WordPress content for AI search engines, ChatGPT Search, Claude, and Perplexity with /llms.txt, Clean Markdown, and GEO Audits.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Nexura Security
@@ -20,7 +20,7 @@ if ( !defined( 'ABSPATH' ) ) {
     exit;
 }
 // Plugin constants.
-define( 'NEXURA_AI_SEARCH_VERSION', '1.0.0' );
+define( 'NEXURA_AI_SEARCH_VERSION', '1.1.0' );
 define( 'NEXURA_AI_SEARCH_FILE', __FILE__ );
 define( 'NEXURA_AI_SEARCH_DIR', plugin_dir_path( __FILE__ ) );
 define( 'NEXURA_AI_SEARCH_URL', plugin_dir_url( __FILE__ ) );
@@ -89,8 +89,8 @@ if ( function_exists( 'naso_fs' ) ) {
  * @return void
  */
 function naso_fs_custom_uninstall() {
-    delete_option( 'nexura_ai_search_options' );
-    delete_option( 'nexura_onboarding_completed' );
+    wp_clear_scheduled_hook( 'naso_cron_background_scan' );
+    wp_clear_scheduled_hook( 'naso_pro_scheduled_scan' );
     delete_transient( 'naso_llms_txt' );
     delete_transient( 'naso_llms_full_txt' );
     delete_transient( 'naso_activation_redirect' );
@@ -98,9 +98,19 @@ function naso_fs_custom_uninstall() {
     delete_transient( 'nexura_llms_txt_cache' );
     delete_transient( 'nexura_llms_full_txt_cache' );
     delete_transient( 'nexura_flush_rewrite_rules' );
+    $settings = get_option( 'naso_settings', array() );
+    if ( empty( $settings['delete_data_on_uninstall'] ) ) {
+        return;
+    }
+    delete_option( 'naso_settings' );
+    delete_option( 'nexura_ai_search_options' );
+    delete_option( 'nexura_onboarding_completed' );
     global $wpdb;
-    // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+    // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
     $wpdb->query( "DELETE FROM {$wpdb->options} WHERE option_name LIKE 'naso_%' OR option_name LIKE 'nexura_%'" );
+    $wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE '\\_naso\\_%'" );
+    $wpdb->query( "DELETE FROM {$wpdb->usermeta} WHERE meta_key LIKE 'naso_%'" );
+    // phpcs:enable
 }
 
 // 2. Load Core Plugin.

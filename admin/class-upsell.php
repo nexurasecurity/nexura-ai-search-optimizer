@@ -34,7 +34,7 @@ class Upsell {
 		if ( function_exists( 'naso_fs' ) && is_object( naso_fs() ) ) {
 			return naso_fs()->get_upgrade_url();
 		}
-		return admin_url( 'admin.php?page=nexura-ai-search-pricing' );
+		return admin_url( 'admin.php?page=nexura-ai-search-upgrade' );
 	}
 
 	/**
@@ -47,7 +47,7 @@ class Upsell {
 		if ( function_exists( 'naso_fs' ) && is_object( naso_fs() ) ) {
 			return naso_fs()->get_upgrade_url();
 		}
-		return admin_url( 'admin.php?page=nexura-ai-search-pricing' );
+		return admin_url( 'admin.php?page=nexura-ai-search-upgrade' );
 	}
 
 	/**

@@ -105,6 +105,51 @@ class Rewrite_Rules {
 			exit;
 		}
 
+		// Check for virtual IndexNow API verification file (/<32-char-hex>.txt)
+		if ( ! empty( $uri_path ) && Settings::get( 'indexnow_enabled', 1 ) && preg_match( '#(^|/)([a-f0-9]{32})\.txt$#i', $uri_path, $key_matches ) ) {
+			require_once NEXURA_AI_SEARCH_DIR . 'includes/class-indexnow.php';
+			$indexnow_key = IndexNow::get_api_key();
+			if ( ! empty( $indexnow_key ) && strtolower( $key_matches[2] ) === strtolower( $indexnow_key ) ) {
+				status_header( 200 );
+				header( 'Content-Type: text/plain; charset=utf-8' );
+				header( 'X-Robots-Tag: noindex' );
+				echo esc_html( $indexnow_key );
+				exit;
+			}
+		}
+
+		// Check for llmstxt.org v2 .md URL extension mirror (e.g. /post-slug.md or /docs/page.md)
+		if ( ! empty( $uri_path ) && Settings::get( 'markdown_output_enabled', 1 ) && preg_match( '#^(.+)\.md$#i', $uri_path, $md_matches ) ) {
+			$clean_slug_path = trim( $md_matches[1], '/' );
+			$home_path       = trim( (string) wp_parse_url( home_url(), PHP_URL_PATH ), '/' );
+			if ( ! empty( $home_path ) && 0 === strpos( $clean_slug_path, $home_path . '/' ) ) {
+				$clean_slug_path = substr( $clean_slug_path, strlen( $home_path ) + 1 );
+			}
+			$candidate_url = home_url( '/' . $clean_slug_path . '/' );
+			$resolved_id   = url_to_postid( $candidate_url );
+			if ( ! $resolved_id ) {
+				$base_slug   = basename( $clean_slug_path );
+				$found_posts = get_posts( array(
+					'name'        => sanitize_title( $base_slug ),
+					'post_type'   => Settings::get_supported_post_types(),
+					'post_status' => 'publish',
+					'numberposts' => 1,
+					'fields'      => 'ids',
+				) );
+				if ( ! empty( $found_posts ) ) {
+					$resolved_id = (int) $found_posts[0];
+				}
+			}
+
+			if ( $resolved_id ) {
+				status_header( 200 );
+				require_once NEXURA_AI_SEARCH_DIR . 'includes/class-markdown-output.php';
+				$md_output = new Markdown_Output();
+				$md_output->render_singular( $resolved_id );
+				exit;
+			}
+		}
+
 		// Check for ?format=markdown (public GET parameter)
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended
 		$format_param = isset( $_GET['format'] ) ? sanitize_key( wp_unslash( $_GET['format'] ) ) : '';

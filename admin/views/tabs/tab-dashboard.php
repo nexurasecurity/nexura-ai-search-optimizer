@@ -19,11 +19,15 @@ $robots_url    = home_url( '/robots.txt' );
 
 $seo_plugins = Schema_Diagnostics::get_active_seo_plugins();
 
-$recent_posts = get_posts( array(
-	'numberposts' => 15,
+$raw_recent_posts = get_posts( array(
+	'numberposts' => 25,
 	'post_status' => 'publish',
-	'post_type'   => Settings::get( 'post_types', array( 'post', 'page' ) ),
+	'post_type'   => Settings::get_supported_post_types(),
 ) );
+$recent_posts = array_values( array_filter( $raw_recent_posts, function( $p ) {
+	return ! \NexuraAISearch\LLMS_Generator::is_excluded_utility_page( $p );
+} ) );
+$recent_posts = array_slice( $recent_posts, 0, 15 );
 ?>
 
 <div class="naso-dashboard-grid">
@@ -167,6 +171,46 @@ $recent_posts = get_posts( array(
 					<?php esc_html_e( 'No dedicated SEO plugin detected. Nexura operates standalone to empower AI engine discoverability.', 'nexura-ai-search-optimizer' ); ?>
 				</p>
 			<?php endif; ?>
+		</div>
+
+		<!-- 2026 AI Crawler, WAF & IndexNow Health Check -->
+		<?php
+		$has_physical_robots = file_exists( ABSPATH . 'robots.txt' );
+		$is_blog_public      = ( '0' !== (string) get_option( 'blog_public', '1' ) );
+		$is_cloudflare       = ! empty( $_SERVER['HTTP_CF_RAY'] ) || ! empty( $_SERVER['HTTP_CF_CONNECTING_IP'] );
+		$indexnow_active     = (bool) Settings::get( 'indexnow_enabled', 1 );
+		?>
+		<div class="card naso-card">
+			<h3><span class="dashicons dashicons-networking" style="color:#2271b1;"></span> <?php esc_html_e( 'AI Crawler & WAF Diagnostics', 'nexura-ai-search-optimizer' ); ?></h3>
+			<ul style="margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 1.6;">
+				<li style="margin-bottom: 8px;">
+					<?php if ( $is_blog_public ) : ?>
+						<span style="color:#00a32a; font-weight:700;">✓</span> <strong><?php esc_html_e( 'Site Indexing:', 'nexura-ai-search-optimizer' ); ?></strong> <?php esc_html_e( 'Public & open to AI search engines.', 'nexura-ai-search-optimizer' ); ?>
+					<?php else : ?>
+						<span style="color:#d63638; font-weight:700;">✗</span> <strong><?php esc_html_e( 'Site Indexing Blocked:', 'nexura-ai-search-optimizer' ); ?></strong> <?php esc_html_e( 'WordPress "Discourage search engines" is enabled in Settings > Reading!', 'nexura-ai-search-optimizer' ); ?>
+					<?php endif; ?>
+				</li>
+				<li style="margin-bottom: 8px;">
+					<?php if ( ! $has_physical_robots ) : ?>
+						<span style="color:#00a32a; font-weight:700;">✓</span> <strong><?php esc_html_e( 'Virtual Robots.txt:', 'nexura-ai-search-optimizer' ); ?></strong> <?php esc_html_e( 'No conflicting physical robots.txt file found.', 'nexura-ai-search-optimizer' ); ?>
+					<?php else : ?>
+						<span style="color:#dba617; font-weight:700;">⚠</span> <strong><?php esc_html_e( 'Physical robots.txt Detected:', 'nexura-ai-search-optimizer' ); ?></strong> <?php esc_html_e( 'A static robots.txt file in your root folder may override WordPress virtual AI directives.', 'nexura-ai-search-optimizer' ); ?>
+					<?php endif; ?>
+				</li>
+				<li style="margin-bottom: 8px;">
+					<?php if ( $indexnow_active ) : ?>
+						<span style="color:#00a32a; font-weight:700;">✓</span> <strong><?php esc_html_e( 'IndexNow Protocol:', 'nexura-ai-search-optimizer' ); ?></strong> <?php esc_html_e( 'Active for Bing, Copilot & ChatGPT Search.', 'nexura-ai-search-optimizer' ); ?>
+					<?php else : ?>
+						<span style="color:#dba617; font-weight:700;">⚠</span> <strong><?php esc_html_e( 'IndexNow Protocol:', 'nexura-ai-search-optimizer' ); ?></strong> <?php esc_html_e( 'Disabled in Advanced Settings.', 'nexura-ai-search-optimizer' ); ?>
+					<?php endif; ?>
+				</li>
+				<?php if ( $is_cloudflare ) : ?>
+					<li style="margin-top: 8px; padding: 8px 10px; background: #f0f6fc; border-left: 3px solid #2271b1; border-radius: 3px; font-size: 12px;">
+						<strong><?php esc_html_e( 'Cloudflare Detected:', 'nexura-ai-search-optimizer' ); ?></strong>
+						<?php esc_html_e( 'Ensure "Block AI Bots" / Bot Fight Mode in Cloudflare Security allows OAI-SearchBot, Claude-SearchBot & PerplexityBot.', 'nexura-ai-search-optimizer' ); ?>
+					</li>
+				<?php endif; ?>
+			</ul>
 		</div>
 
 		<!-- Quick Maintenance Tools -->

@@ -43,14 +43,42 @@ $naso_settings = Settings::get_all();
 					<td>
 						<label for="naso_markdown_output_enabled">
 							<input type="checkbox" id="naso_markdown_output_enabled" name="<?php echo esc_attr( Settings::OPTION_NAME ); ?>[markdown_output_enabled]" value="1" <?php checked( 1, $naso_settings['markdown_output_enabled'] ); ?> />
-							<?php esc_html_e( 'Enable ?format=markdown endpoint for singular posts and pages', 'nexura-ai-search-optimizer' ); ?>
+							<?php esc_html_e( 'Enable ?format=markdown & .md URL endpoints for singular posts and pages', 'nexura-ai-search-optimizer' ); ?>
 						</label>
 						<br />
 						<label for="naso_markdown_head_link" style="margin-top: 8px; display: inline-block;">
 							<input type="checkbox" id="naso_markdown_head_link" name="<?php echo esc_attr( Settings::OPTION_NAME ); ?>[markdown_head_link]" value="1" <?php checked( 1, $naso_settings['markdown_head_link'] ); ?> />
-							<?php esc_html_e( 'Output <link rel="alternate" type="text/markdown"> discovery tag in <head>', 'nexura-ai-search-optimizer' ); ?>
+							<?php esc_html_e( 'Output <link rel="alternate" type="text/markdown">, <link rel="describedby"> & HTTP Link headers (llmstxt.org v2)', 'nexura-ai-search-optimizer' ); ?>
 						</label>
 						<p class="description"><?php esc_html_e( 'Informs AI bots like ChatGPT and Perplexity that a clean, semantic markdown representation of the page is available.', 'nexura-ai-search-optimizer' ); ?></p>
+					</td>
+				</tr>
+
+				<!-- IndexNow Instant AI Indexing -->
+				<?php
+				require_once NEXURA_AI_SEARCH_DIR . 'includes/class-indexnow.php';
+				$naso_indexnow_key  = \NexuraAISearch\IndexNow::get_api_key();
+				$naso_indexnow_ping = get_option( 'naso_indexnow_last_ping', array() );
+				?>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'IndexNow Instant AI Indexing', 'nexura-ai-search-optimizer' ); ?></th>
+					<td>
+						<label for="naso_indexnow_enabled">
+							<input type="checkbox" id="naso_indexnow_enabled" name="<?php echo esc_attr( Settings::OPTION_NAME ); ?>[indexnow_enabled]" value="1" <?php checked( 1, $naso_settings['indexnow_enabled'] ); ?> />
+							<strong><?php esc_html_e( 'Automatically ping IndexNow (Bing, Microsoft Copilot & ChatGPT Search) when content is published or AI-optimized', 'nexura-ai-search-optimizer' ); ?></strong>
+						</label>
+						<p class="description" style="margin-top: 6px;">
+							<?php esc_html_e( 'Verification Key URL:', 'nexura-ai-search-optimizer' ); ?>
+							<code><a href="<?php echo esc_url( home_url( '/' . $naso_indexnow_key . '.txt' ) ); ?>" target="_blank"><?php echo esc_html( home_url( '/' . $naso_indexnow_key . '.txt' ) ); ?></a></code>
+							<?php if ( ! empty( $naso_indexnow_ping['url'] ) ) : ?>
+								<br />
+								<span style="color:#00a32a; font-size:12px;">
+									✓ <?php esc_html_e( 'Last Ping:', 'nexura-ai-search-optimizer' ); ?>
+									<strong><?php echo esc_html( $naso_indexnow_ping['url'] ); ?></strong>
+									(<?php echo esc_html( $naso_indexnow_ping['time'] ); ?>)
+								</span>
+							<?php endif; ?>
+						</p>
 					</td>
 				</tr>
 

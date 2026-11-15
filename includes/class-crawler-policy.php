@@ -24,8 +24,8 @@ class Crawler_Policy {
 	public function register_hooks() {
 		if ( Settings::get( 'crawler_policy_enabled', 1 ) ) {
 			add_filter( 'robots_txt', array( $this, 'filter_robots_txt' ), 10, 2 );
-			add_action( 'wp_head', array( $this, 'output_meta_snippet_controls' ), 1 );
 		}
+		add_action( 'wp_head', array( $this, 'output_meta_snippet_controls' ), 1 );
 	}
 
 	/**
@@ -53,8 +53,25 @@ class Crawler_Policy {
 			$directives .= "User-agent: PerplexityBot\nAllow: /\n\n";
 		}
 
+		if ( Settings::get( 'allow_googlebot', 1 ) ) {
+			$directives .= "User-agent: Googlebot\nAllow: /\n\n";
+		}
+
 		if ( Settings::get( 'allow_applebot', 1 ) ) {
 			$directives .= "User-agent: Applebot\nAllow: /\n\n";
+		}
+
+		if ( Settings::get( 'allow_chatgpt_user', 1 ) ) {
+			$directives .= "# Live User-Triggered AI Browsing Agents\n";
+			$directives .= "User-agent: ChatGPT-User\nAllow: /\n\n";
+			$directives .= "User-agent: Claude-User\nAllow: /\n\n";
+			$directives .= "User-agent: Perplexity-User\nAllow: /\n\n";
+		}
+
+		if ( Settings::get( 'allow_duckassist', 1 ) ) {
+			$directives .= "User-agent: DuckAssistBot\nAllow: /\n\n";
+			$directives .= "User-agent: Amazonbot\nAllow: /\n\n";
+			$directives .= "User-agent: YouBot\nAllow: /\n\n";
 		}
 
 		// 2. Training Scrapers (Optional selective blocking of bulk model trainers)
@@ -75,24 +92,30 @@ class Crawler_Policy {
 			$directives .= "User-agent: Applebot-Extended\nDisallow: /\n\n";
 		}
 
+		if ( Settings::get( 'block_meta_external', 0 ) ) {
+			$directives .= "User-agent: Meta-ExternalAgent\nDisallow: /\n\n";
+		}
+
 		if ( Settings::get( 'block_bytespider', 1 ) ) {
 			$directives .= "User-agent: Bytespider\nDisallow: /\n\n";
 			$directives .= "User-agent: cohere-ai\nDisallow: /\n\n";
 		}
 
-		// 3. Exclude dynamic / checkout / account utility pages from AI crawling
-		$directives .= "# Disallow non-indexable utility & checkout pages\n";
+		// 3. Exclude dynamic / checkout / account utility pages & allow LLMS.txt for all agents
+		$directives .= "# Global utility exclusions & AI documentation endpoints\n";
+		$directives .= "User-agent: *\n";
 		$directives .= "Disallow: /cart/\n";
 		$directives .= "Disallow: /checkout/\n";
-		$directives .= "Disallow: /my-account/\n\n";
+		$directives .= "Disallow: /my-account/\n";
 
-		// 4. Explicit LLMS.txt allow rules & sitemap reference
 		if ( Settings::get( 'llms_enabled', 1 ) ) {
 			$directives .= "Allow: /llms.txt\n";
-			$directives .= "Sitemap: " . esc_url( home_url( '/llms.txt' ) ) . "\n";
 		}
 		if ( Settings::get( 'llms_full_enabled', 1 ) ) {
 			$directives .= "Allow: /llms-full.txt\n";
+		}
+		if ( Settings::get( 'llms_enabled', 1 ) ) {
+			$directives .= "\n# LLMs.txt AI Index: " . esc_url( home_url( '/llms.txt' ) ) . "\n";
 		}
 
 		return $output . $directives;
