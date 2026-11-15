@@ -34,3 +34,4 @@ jobs:
 
       - name: All PHP files passed
         run: echo "All PHP files passed syntax check on PHP ${{ matrix.php }}"
+

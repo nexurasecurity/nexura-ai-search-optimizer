@@ -29,3 +29,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Granular control to exclude sensitive or private pages from `/llms.txt` and AI search indexing.
 - **Native WordPress Admin UI/UX**:
   - Clean, accessible admin design supporting all standard WordPress color palettes and Dark Mode.
+

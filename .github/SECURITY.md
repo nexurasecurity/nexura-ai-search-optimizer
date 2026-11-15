@@ -18,3 +18,4 @@ Please report all security vulnerabilities to our dedicated security team at **s
 We treat all security reports with high urgency and will respond within 24 hours to verify the report and coordinate a patch. Responsible disclosures will be publicly credited in our changelog once the fix is released.
 
 Thank you for keeping the WordPress ecosystem secure!
+

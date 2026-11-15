@@ -35,3 +35,4 @@ Feature suggestions and enhancements are welcome! Please include:
 * **Security First**: All endpoints and settings must use nonces, capability checks (`manage_options`), and sanitized inputs.
 
 Thank you for helping shape the future of AI search on WordPress!
+
